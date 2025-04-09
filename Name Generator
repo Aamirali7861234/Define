@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Indian Name Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    h2 { margin-bottom: 10px; }
+    #nameBox { font-size: 24px; margin: 20px; font-weight: bold; color: #2e7d32; }
+    button {
+      padding: 10px 20px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #125aa0;
+    }
+    #copyButton {
+      background-color: #4caf50;
+    }
+    #copyButton:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h2>Unlimited Indian Name Generator</h2>
+  <div id="nameBox">Click the button to generate a name</div>
+  <div id="counterBox">Generated Names: 0</div>
+  <button onclick="generateName()">Generate Name</button>
+  <button id="copyButton" onclick="copyName()">Copy Name</button>
+
+  <script>
+    const firstNames = ["Amit", "Priya", "Rahul", "Sneha", "Vikram", "Neha", "Ravi", "Pooja", "Ankit", "Kajal"];
+    const middleNames = ["Kumar", "Singh", "Raj", "Rani", "Lal", "Devi", "Chandra", "Nath", "Mani", "Shree"];
+    const lastNames = ["Sharma", "Verma", "Patel", "Yadav", "Reddy", "Das", "Mishra", "Gupta", "Joshi", "Thakur"];
+
+    let generated = new Set(); // To store generated names
+    let currentName = ""; // Store the current generated name
+
+    // Function to update the counter display
+    function updateCounter() {
+      let generatedCount = generated.size;
+      document.getElementById("counterBox").textContent = `Generated Names: ${generatedCount}`;
+    }
+
+    function generateName() {
+      let name;
+
+      // Ensure name is unique by checking against the generated set
+      do {
+        const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const middle = middleNames[Math.floor(Math.random() * middleNames.length)];
+        const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+
+        // Make the first letter of middle name lowercase
+        const middleNameLower = middle.charAt(0).toLowerCase() + middle.slice(1);
+
+        // Combining names (first and middle without space, last with space)
+        name = `${first}${middleNameLower} ${last}`;
+
+      } while (generated.has(name)); // Repeat if name is already generated
+
+      generated.add(name); // Add the unique name to the set
+      currentName = name; // Store the current generated name
+
+      // Display the generated name
+      document.getElementById("nameBox").textContent = name;
+
+      // Update the counter
+      updateCounter();
+    }
+
+    function copyName() {
+      // Ensure there is a name to copy
+      if (currentName) {
+        // Using modern Clipboard API to copy text
+        navigator.clipboard.writeText(currentName).then(() => {
+          alert("Name copied to clipboard!");
+        }).catch(err => {
+          alert("Failed to copy name: " + err);
+        });
+      } else {
+        alert("Generate a name first!");
+      }
+    }
+  </script>
+</body>
+</html>
