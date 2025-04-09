@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Number + OTP Merger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: vertical;
+      box-sizing: border-box;
+      margin-bottom: 16px;
+    }
+
+    select, button {
+      padding: 10px 14px;
+      font-size: 16px;
+      margin-right: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    select {
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .result-box {
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .result-box textarea {
+      background: #f8f8f8;
+      font-family: monospace;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 15px;
+      resize: vertical;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .count {
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Number + OTP Merger</h2>
+
+    <textarea id="sheetInput" placeholder="Paste all sheets here (Index TAB Number + Index,OTP)..."></textarea>
+
+    <label>Group Size:</label>
+    <select id="chunkSize">
+      <option value="4">4</option>
+      <option value="8" selected>8</option>
+      <option value="10">10</option>
+    </select>
+
+    <button onclick="mergeData()">Generate</button>
+
+    <div id="resultArea"></div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Aamir. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function mergeData() {
+      const raw = document.getElementById('sheetInput').value.trim().split('\n');
+      const chunkSize = parseInt(document.getElementById('chunkSize').value);
+      const resultArea = document.getElementById('resultArea');
+      const numberMap = {};
+      const otpMap = {};
+
+      // Read all lines and separate numbers and OTPs
+      raw.forEach(line => {
+        line = line.trim();
+        if (line.includes('\t')) {
+          const [index, number] = line.split('\t');
+          if (number && index) {
+            if (!numberMap[index]) numberMap[index] = [];
+            numberMap[index].push(number);
+          }
+        } else if (line.includes(',')) {
+          const [index, otp] = line.split(',');
+          if (otp && index) otpMap[index] = otp;
+        }
+      });
+
+      const finalList = [];
+      for (const index in numberMap) {
+        if (otpMap[index]) {
+          numberMap[index].forEach(number => {
+            finalList.push(`${number} - ${otpMap[index]}`);
+          });
+        }
+      }
+
+      resultArea.innerHTML = '';
+
+      // Count display
+      const countBox = document.createElement('div');
+      countBox.className = 'count';
+      countBox.textContent = `Total: ${finalList.length} entries`;
+      resultArea.appendChild(countBox);
+
+      // Group and display
+      for (let i = 0; i < finalList.length; i += chunkSize) {
+        const group = finalList.slice(i, i + chunkSize);
+        const box = document.createElement('div');
+        box.className = 'result-box';
+
+        const ta = document.createElement('textarea');
+        ta.rows = group.length;
+        ta.readOnly = true;
+        ta.value = group.join('\n');
+
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.textContent = 'Copy';
+        btn.onclick = () => {
+          navigator.clipboard.writeText(ta.value);
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.textContent = 'Copy', 1500);
+        };
+
+        box.appendChild(ta);
+        box.appendChild(btn);
+        resultArea.appendChild(box);
+      }
+    }
+  </script>
+</body>
+</html>
