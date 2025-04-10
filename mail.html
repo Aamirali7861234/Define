@@ -2,102 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multi-API Temporary Email Tool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Instant Temp Email</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f2f3f7;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding: 30px;
+      height: 100vh;
     }
     .container {
       background: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
+      padding: 20px 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
       width: 100%;
-    }
-    h1 {
+      max-width: 400px;
       text-align: center;
-      color: #4a4a4a;
     }
     button {
       background: #4f46e5;
       color: white;
       border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
+      padding: 12px 20px;
       font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s;
-      width: 100%;
-    }
-    button:hover {
-      background: #3730a3;
-    }
-    .email-display, .inbox {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f9fafb;
-      border: 1px solid #d1d5db;
       border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    #email, #inbox {
+      background: #f0f9ff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
       word-break: break-word;
     }
-    .inbox-message {
-      background: #fff;
+    .message {
+      background: #dcfce7;
+      margin-top: 8px;
       padding: 10px;
       border-radius: 8px;
-      margin-top: 10px;
-      box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Temporary Email Generator</h1>
+    <h2>Temporary Email Generator</h2>
     <button onclick="generateEmail()">Generate Email</button>
-    <div class="email-display" id="emailDisplay">Email ID will appear here</div>
-    <div class="inbox" id="inboxMessages">Inbox messages will appear here</div>
+    <div id="email">Your email will appear here</div>
+    <div id="inbox">Inbox will appear here</div>
   </div>
-  <audio id="dingSound" src="https://notificationsounds.com/storage/sounds/file-sounds-1156-pristine.mp3"></audio>
 
   <script>
-    let currentEmail = '';
-    let interval;
+    let currentLogin = "";
+    let currentDomain = "";
 
     async function generateEmail() {
-      clearInterval(interval);
-      document.getElementById("emailDisplay").innerText = 'Generating...';
-      document.getElementById("inboxMessages").innerHTML = '';
+      document.getElementById("email").innerText = "Generating...";
+      document.getElementById("inbox").innerText = "";
 
-      const proxy = 'https://corsproxy.io/?';
-      const url = 'https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1';
-      const response = await fetch(proxy + encodeURIComponent(url));
-      const data = await response.json();
-      currentEmail = data[0];
-      document.getElementById("emailDisplay").innerText = currentEmail;
+      try {
+        const res = await fetch("https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1");
+        const emails = await res.json();
+        const email = emails[0];
+        const [login, domain] = email.split("@");
 
-      const [login, domain] = currentEmail.split('@');
+        currentLogin = login;
+        currentDomain = domain;
 
-      // Start checking inbox every 10 seconds
-      interval = setInterval(async () => {
-        const inboxUrl = `https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`;
-        const inboxRes = await fetch(proxy + encodeURIComponent(inboxUrl));
-        const messages = await inboxRes.json();
+        document.getElementById("email").innerText = email;
+        checkInbox();
+      } catch (error) {
+        document.getElementById("email").innerText = "Error generating email.";
+        console.error(error);
+      }
+    }
 
-        if (messages.length) {
-          const container = document.getElementById("inboxMessages");
-          container.innerHTML = '';
-          messages.forEach(msg => {
-            container.innerHTML += `<div class="inbox-message"><strong>${msg.from}</strong><br>${msg.subject}</div>`;
+    async function checkInbox() {
+      try {
+        const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
+        const res = await fetch(url);
+        const messages = await res.json();
+
+        const inbox = document.getElementById("inbox");
+        inbox.innerHTML = "";
+
+        if (messages.length === 0) {
+          inbox.innerText = "No messages yet.";
+        } else {
+          messages.forEach(async (msg) => {
+            const msgRes = await fetch(`https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`);
+            const msgData = await msgRes.json();
+            inbox.innerHTML += `<div class="message"><b>${msgData.from}</b><br><b>${msgData.subject}</b><br>${msgData.textBody}</div>`;
           });
-          document.getElementById("dingSound").play();
         }
-      }, 10000);
+      } catch (error) {
+        document.getElementById("inbox").innerText = "Failed to check inbox.";
+        console.error(error);
+      }
     }
   </script>
 </body>
