@@ -102,6 +102,10 @@
     <div id="resultArea"></div>
   </div>
 
+  <div style="text-align: center; margin-top: 40px; font-size: 14px; color: #777;">
+    &copy; 2024 Aamir Ali. All rights reserved.
+  </div>
+
   <script>
     function merge() {
       const raw = document.getElementById("input").value.trim().split("===");
@@ -133,13 +137,11 @@
       const resultArea = document.getElementById("resultArea");
       resultArea.innerHTML = "";
 
-      // Count
       const countBox = document.createElement("div");
       countBox.className = "count";
       countBox.textContent = `Total: ${finalList.length} entries`;
       resultArea.appendChild(countBox);
 
-      // Group display
       for (let i = 0; i < finalList.length; i += chunkSize) {
         const group = finalList.slice(i, i + chunkSize);
         const box = document.createElement("div");
