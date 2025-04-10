@@ -3,48 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Instant Temp Email</title>
+  <title>Temporary Email Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #eef3f8;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
     }
     .container {
-      background: white;
-      padding: 20px 25px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
+      background: #fff;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    h2 {
+      font-size: 22px;
+      margin-bottom: 16px;
     }
     button {
-      background: #4f46e5;
-      color: white;
+      background: #4c5bf3;
+      color: #fff;
       border: none;
       padding: 12px 20px;
       font-size: 16px;
       border-radius: 8px;
       cursor: pointer;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
+      transition: background 0.3s;
     }
-    #email, #inbox {
-      background: #f0f9ff;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
+    button:hover {
+      background: #3a45d1;
+    }
+    input {
+      width: 100%;
       padding: 12px;
-      margin-top: 10px;
-      word-break: break-word;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .copy-status {
+      color: green;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .messages {
+      text-align: left;
     }
     .message {
-      background: #dcfce7;
-      margin-top: 8px;
+      background: #f9f9ff;
+      border-left: 4px solid #4c5bf3;
       padding: 10px;
+      margin-bottom: 10px;
       border-radius: 8px;
+    }
+    .message strong {
+      display: block;
+    }
+
+    @media (max-width: 500px) {
+      h2 {
+        font-size: 20px;
+      }
+      button, input {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -52,57 +88,88 @@
   <div class="container">
     <h2>Temporary Email Generator</h2>
     <button onclick="generateEmail()">Generate Email</button>
-    <div id="email">Your email will appear here</div>
-    <div id="inbox">Inbox will appear here</div>
+    <input type="text" id="email" readonly placeholder="Your temp email" />
+    <button onclick="copyEmail()">Copy Email</button>
+    <div id="copyStatus" class="copy-status"></div>
+    <div class="messages" id="messages">No messages yet.</div>
+    <audio id="notifSound" src="https://notificationsounds.com/storage/sounds/file-sounds-1151-pristine.mp3" preload="auto"></audio>
   </div>
 
   <script>
     let currentLogin = "";
     let currentDomain = "";
+    const domains = ["1secmail.com", "1secmail.org", "1secmail.net"];
+    let lastMessageId = null;
 
-    async function generateEmail() {
-      document.getElementById("email").innerText = "Generating...";
-      document.getElementById("inbox").innerText = "";
+    function generateEmail() {
+      const randomStr = Math.random().toString(36).substring(2, 10);
+      currentLogin = randomStr;
+      currentDomain = domains[Math.floor(Math.random() * domains.length)];
+      const email = `${currentLogin}@${currentDomain}`;
+      document.getElementById("email").value = email;
+      document.getElementById("messages").innerHTML = "Waiting for OTP...";
+      document.getElementById("copyStatus").textContent = "";
+      lastMessageId = null;
+      fetchMessages();
+      setInterval(fetchMessages, 5000);
+    }
 
-      try {
-        const res = await fetch("https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1");
-        const emails = await res.json();
-        const email = emails[0];
-        const [login, domain] = email.split("@");
+    function fetchMessages() {
+      if (!currentLogin || !currentDomain) return;
+      const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          const messageBox = document.getElementById("messages");
+          if (data.length === 0) {
+            messageBox.innerHTML = "No messages yet.";
+          } else {
+            if (lastMessageId !== data[0].id) {
+              lastMessageId = data[0].id;
+              playSound();
+              showNotification("New OTP Received", data[0].subject);
+            }
 
-        currentLogin = login;
-        currentDomain = domain;
+            messageBox.innerHTML = data.map(msg => `
+              <div class="message">
+                <strong>From:</strong> ${msg.from}
+                <strong>Subject:</strong> ${msg.subject}
+                <small>ID: ${msg.id}</small>
+              </div>
+            `).join('');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("messages").innerText = "Error fetching messages.";
+        });
+    }
 
-        document.getElementById("email").innerText = email;
-        checkInbox();
-      } catch (error) {
-        document.getElementById("email").innerText = "Error generating email.";
-        console.error(error);
+    function playSound() {
+      document.getElementById("notifSound").play();
+    }
+
+    function showNotification(title, body) {
+      if (Notification.permission === "granted") {
+        new Notification(title, { body });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            new Notification(title, { body });
+          }
+        });
       }
     }
 
-    async function checkInbox() {
-      try {
-        const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
-        const res = await fetch(url);
-        const messages = await res.json();
-
-        const inbox = document.getElementById("inbox");
-        inbox.innerHTML = "";
-
-        if (messages.length === 0) {
-          inbox.innerText = "No messages yet.";
-        } else {
-          messages.forEach(async (msg) => {
-            const msgRes = await fetch(`https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`);
-            const msgData = await msgRes.json();
-            inbox.innerHTML += `<div class="message"><b>${msgData.from}</b><br><b>${msgData.subject}</b><br>${msgData.textBody}</div>`;
-          });
-        }
-      } catch (error) {
-        document.getElementById("inbox").innerText = "Failed to check inbox.";
-        console.error(error);
-      }
+    function copyEmail() {
+      const emailField = document.getElementById("email");
+      emailField.select();
+      emailField.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(emailField.value).then(() => {
+        const status = document.getElementById("copyStatus");
+        status.textContent = "Email copied!";
+        setTimeout(() => status.textContent = "", 2000);
+      });
     }
   </script>
 </body>
