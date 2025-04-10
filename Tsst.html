@@ -1,116 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Number + OTP Merger</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OTP Merger</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f8;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-    }
-    textarea {
+    textarea, select, button {
+      margin-top: 10px;
+      display: block;
       width: 100%;
-      height: 200px;
-      padding: 12px;
-      font-size: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      resize: vertical;
-      box-sizing: border-box;
-    }
-    select, button {
-      padding: 10px 14px;
+      padding: 10px;
       font-size: 16px;
-      margin-right: 10px;
-      border-radius: 6px;
-      border: none;
     }
-    select {
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #28a745;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    .result-box {
-      background: #fff;
-      padding: 15px;
+    .output-box {
       margin-top: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: relative;
-    }
-    .result-box textarea {
-      background: #f8f8f8;
-      font-family: monospace;
-      width: 100%;
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
       border-radius: 6px;
       padding: 10px;
-      font-size: 15px;
-      resize: vertical;
-    }
-    .copy-btn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .copy-btn:hover {
-      background-color: #0056b3;
-    }
-    .count {
-      font-weight: bold;
-      font-size: 16px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      color: #444;
+      background: #f9f9f9;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Number + OTP Merger</h2>
-    <textarea id="input" placeholder="Paste your data here..."></textarea>
 
-    <label>Group Size:</label>
-    <select id="chunkSize">
-      <option value="1">1</option>
-      <option value="4">4</option>
-      <option value="8" selected>8</option>
-      <option value="10">10</option>
-    </select>
+  <h2>Number + OTP Merger</h2>
+  <textarea id="input" placeholder="Paste numbers and OTPs..."></textarea>
+  
+  <label>Group Size</label>
+  <select id="chunkSize">
+    <option value="4">4</option>
+    <option value="8" selected>8</option>
+    <option value="10">10</option>
+  </select>
+  
+  <button onclick="generate()">Generate</button>
+  <button onclick="sendAll()">Send All via WhatsApp</button>
 
-    <button onclick="merge()">Generate</button>
-    <button onclick="sendViaWhatsApp()">Send All via WhatsApp</button>
-
-    <div id="resultArea"></div>
-  </div>
+  <div id="output"></div>
 
   <script>
-    let mergedGroups = []; // Store message blocks
+    let mergedGroups = [];
 
-    function merge() {
-      const raw = document.getElementById("input").value.trim().split("===");
+    function generate() {
+      const text = document.getElementById("input").value.trim();
+      const lines = text.split("\n").filter(line => line.includes("-") || line.includes(",") || line.includes("\t"));
+
+      const cleaned = lines.map(line => {
+        let parts = line.split(/[-,\t]/);
+        if (parts.length >= 2) {
+          return `${parts[0].trim()} - ${parts[1].trim()}`;
+        }
+        return null;
+      }).filter(Boolean);
+
       const chunkSize = parseInt(document.getElementById("chunkSize").value);
-      let finalList = [];
+      mergedGroups = [];
 
-      raw.forEach(block => {
-        const lines = block
+      const output = document.getElementById("output");
+      output.innerHTML = "";
+
+      for (let i = 0; i < cleaned.length; i += chunkSize) {
+        const group = cleaned.slice(i, i + chunkSize);
+        mergedGroups.push(group.join("\n"));
+
+        const box = document.createElement("div");
+        box.className = "output-box";
+        box.innerText = group.join("\n");
+        output.appendChild(box);
+      }
+    }
+
+    function sendAll() {
+      if (mergedGroups.length === 0) {
+        alert("Please generate the output first.");
+        return;
+      }
+
+      mergedGroups.forEach((msg, i) => {
+        setTimeout(() => {
+          const encoded = encodeURIComponent(msg);
+          const url = `https://wa.me/?text=${encoded}`;
+          window.open(url, "_blank");
+        }, i * 1500);
+      });
+    }
+  </script>
+
+</body>
+</html>
