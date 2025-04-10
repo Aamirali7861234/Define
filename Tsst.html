@@ -83,13 +83,6 @@
       margin-bottom: 10px;
       color: #444;
     }
-    .whatsapp-btn {
-      background-color: #25D366;
-      margin-top: 20px;
-    }
-    .whatsapp-btn:hover {
-      background-color: #1ebe5b;
-    }
   </style>
 </head>
 <body>
@@ -106,98 +99,18 @@
     </select>
 
     <button onclick="merge()">Generate</button>
+    <button onclick="sendViaWhatsApp()">Send All via WhatsApp</button>
 
     <div id="resultArea"></div>
-    <button id="whatsappAllBtn" class="whatsapp-btn" style="display:none;" onclick="sendAll()">Send All via WhatsApp</button>
-  </div>
-
-  <div style="text-align: center; margin-top: 40px; font-size: 14px; color: #777;">
-    &copy; 2024 Aamir Ali. All rights reserved.
   </div>
 
   <script>
-    let mergedData = [];
+    let mergedGroups = []; // Store message blocks
 
     function merge() {
       const raw = document.getElementById("input").value.trim().split("===");
       const chunkSize = parseInt(document.getElementById("chunkSize").value);
-      mergedData = [];
+      let finalList = [];
 
       raw.forEach(block => {
-        const lines = block.trim().split('\n');
-        const numbers = [];
-        const otps = [];
-
-        lines.forEach(line => {
-          if (line.includes('\t')) {
-            const parts = line.split('\t');
-            if (parts.length >= 2) numbers.push(parts[1].trim());
-          } else if (line.includes(',')) {
-            const parts = line.split(',');
-            if (parts.length >= 2) otps.push(parts[1].trim());
-          }
-        });
-
-        for (let i = 0; i < numbers.length && i < otps.length; i++) {
-          if (numbers[i] && otps[i]) {
-            mergedData.push({ number: numbers[i], otp: otps[i] });
-          }
-        }
-      });
-
-      const resultArea = document.getElementById("resultArea");
-      resultArea.innerHTML = "";
-
-      const countBox = document.createElement("div");
-      countBox.className = "count";
-      countBox.textContent = `Total: ${mergedData.length} entries`;
-      resultArea.appendChild(countBox);
-
-      for (let i = 0; i < mergedData.length; i += chunkSize) {
-        const group = mergedData.slice(i, i + chunkSize);
-        const box = document.createElement("div");
-        box.className = "result-box";
-
-        const ta = document.createElement("textarea");
-        ta.rows = group.length;
-        ta.readOnly = true;
-        ta.value = group.map(e => `${e.number} - ${e.otp}`).join('\n');
-
-        const btn = document.createElement("button");
-        btn.className = "copy-btn";
-        btn.textContent = "Copy";
-        btn.onclick = () => {
-          navigator.clipboard.writeText(ta.value);
-          btn.textContent = "Copied!";
-          setTimeout(() => btn.textContent = "Copy", 1500);
-        };
-
-        box.appendChild(ta);
-        box.appendChild(btn);
-        resultArea.appendChild(box);
-      }
-
-      // Show WhatsApp All button
-      if (mergedData.length > 0) {
-        document.getElementById("whatsappAllBtn").style.display = "inline-block";
-      }
-    }
-
-    function sendAll() {
-      let index = 0;
-
-      function openNext() {
-        if (index < mergedData.length) {
-          const entry = mergedData[index];
-          const link = `https://wa.me/91${entry.number}?text=${encodeURIComponent("Your OTP is: " + entry.otp)}`;
-          window.open(link, '_blank');
-          index++;
-          setTimeout(openNext, 1500); // delay to avoid blocking
-        }
-      }
-
-      openNext();
-    }
-  </script>
-</body>
-</html>
+        const lines = block
