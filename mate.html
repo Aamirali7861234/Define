@@ -4,89 +4,89 @@
   <title>Rummy Mate Registration</title>
   <style>
     body {
-      background: #1c1c1c;
-      color: #f2f2f2;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #111;
+      color: #fff;
+      font-family: Arial;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
-    .container {
-      background: #2b2b2b;
+    .box {
+      background: #222;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 255, 200, 0.3);
-      width: 300px;
-    }
-    h2 {
-      text-align: center;
-      color: #00ffc8;
+      border-radius: 10px;
+      width: 320px;
     }
     input, button {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
+      margin-top: 10px;
       font-size: 16px;
-      border-radius: 6px;
       border: none;
+      border-radius: 6px;
     }
     input {
-      background: #444;
+      background: #333;
       color: #fff;
     }
     button {
-      background-color: #00ffc8;
+      background: #00ffaa;
       color: #000;
       font-weight: bold;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #00ccaa;
-    }
     #status {
       margin-top: 10px;
+      color: #00ffaa;
       text-align: center;
-      color: #00ffc8;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Bind Phone - Rummy Mate</h2>
-    <input type="text" id="phone" placeholder="Enter Phone Number" maxlength="10">
-    <input type="password" id="password" placeholder="Enter Password">
-    <input type="password" id="confirmPassword" placeholder="Confirm Password">
-    <input type="text" id="otp" placeholder="Enter OTP">
-    <button onclick="registerNow()">Confirm</button>
-    <p id="status"></p>
+  <div class="box">
+    <h2>Register - Rummy Mate</h2>
+    <input id="phone" type="text" placeholder="Phone Number">
+    <input id="password" type="password" placeholder="Password">
+    <input id="confirm" type="password" placeholder="Confirm Password">
+    <button onclick="sendOTP()">Send OTP</button>
+    <input id="otp" type="text" placeholder="Enter OTP">
+    <button onclick="registerNow()">Register</button>
+    <div id="status"></div>
   </div>
 
   <script>
+    const api = "http://localhost:8080";
+
+    function sendOTP() {
+      const phone = document.getElementById("phone").value;
+      fetch(`${api}/send_otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone })
+      })
+      .then(res => res.json())
+      .then(data => document.getElementById("status").innerText = data.message);
+    }
+
     function registerNow() {
-      const phone = document.getElementById('phone').value;
-      const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-      const otp = document.getElementById('otp').value;
+      const phone = document.getElementById("phone").value;
+      const password = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm").value;
+      const otp = document.getElementById("otp").value;
 
-      if (!phone || !password || !confirmPassword || !otp) {
-        document.getElementById('status').innerText = 'All fields are required';
-        return;
-      }
-      if (password !== confirmPassword) {
-        document.getElementById('status').innerText = 'Passwords do not match';
+      if (password !== confirm) {
+        document.getElementById("status").innerText = "Passwords do not match.";
         return;
       }
 
-      // POST request to Appium backend (example only)
-      fetch('http://localhost:5000/rummy-register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      fetch(`${api}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, password, otp })
       })
-      .then(res => res.text())
-      .then(msg => document.getElementById('status').innerText = msg)
-      .catch(() => document.getElementById('status').innerText = 'Could not connect to server');
+      .then(res => res.json())
+      .then(data => document.getElementById("status").innerText = data.message);
     }
   </script>
 </body>
