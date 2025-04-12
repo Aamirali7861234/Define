@@ -1,23 +1,194 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Number + OTP Merger</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mail.tm Temp Email</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 30px; }
-    button { padding: 10px 20px; font-size: 16px; margin-top: 10px; }
-    #messages { margin-top: 20px; }
-    .message { border: 1px solid #ccc; padding: 10px; margin: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    select, button {
+      padding: 10px 14px;
+      font-size: 16px;
+      margin-right: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+    select {
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .result-box {
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .result-box textarea {
+      background: #f8f8f8;
+      font-family: monospace;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 15px;
+      resize: vertical;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background-color: #0056b3;
+    }
+    .count {
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      color: #444;
+    }
+    #sendAllBtn {
+      margin-top: 20px;
+      background-color: #25D366;
+    }
+    #sendAllBtn:hover {
+      background-color: #128C7E;
+    }
   </style>
 </head>
 <body>
-  <h1>Temporary Email Generator</h1>
-  <div id="emailBox">Generating...</div>
-  <button onclick="generateEmail()">Change Email</button>
-  <div id="messages"><h2>Messages:</h2><div id="messageList">Loading...</div></div>
+  <div class="container">
+    <h2>Number + OTP Merger</h2>
+    <textarea id="input" placeholder="Paste your data here..."></textarea>
+    <label>Group Size:</label>
+    <select id="chunkSize">
+      <option value="1">1</option>
+      <option value="4">4</option>
+      <option value="8" selected>8</option>
+      <option value="10">10</option>
+    </select>
+    <button onclick="merge()">Generate</button>
+    <button id="sendAllBtn" onclick="sendAll()">Send All via WhatsApp</button>
+    <div id="resultArea"></div>
+  </div>
+  <div style="text-align: center; margin-top: 40px; font-size: 14px; color: #777;">
+    &copy; 2024 Aamir Ali. All rights reserved.
+  </div>
 
-  <script src="script.js"></script>
+  <script>
+    let mergedGroups = [];
+
+    function merge() {
+      const raw = document.getElementById("input").value.trim().split("===");
+      const chunkSize = parseInt(document.getElementById("chunkSize").value);
+      let finalList = [];
+
+      raw.forEach(block => {
+        const lines = block.trim().split('\n');
+        const numbers = [];
+        const otps = [];
+
+        lines.forEach(line => {
+          if (line.includes('\t')) {
+            const parts = line.split('\t');
+            if (parts.length >= 2) numbers.push(parts[1].trim());
+          } else if (line.includes(',')) {
+            const parts = line.split(',');
+            if (parts.length >= 2) otps.push(parts[1].trim());
+          }
+        });
+
+        for (let i = 0; i < numbers.length && i < otps.length; i++) {
+          if (numbers[i] && otps[i]) {
+            finalList.push(`${numbers[i]} - ${otps[i]}`);
+          }
+        }
+      });
+
+      const resultArea = document.getElementById("resultArea");
+      resultArea.innerHTML = "";
+
+      const countBox = document.createElement("div");
+      countBox.className = "count";
+      countBox.textContent = `Total: ${finalList.length} entries`;
+      resultArea.appendChild(countBox);
+
+      mergedGroups = [];
+
+      for (let i = 0; i < finalList.length; i += chunkSize) {
+        const group = finalList.slice(i, i + chunkSize);
+        mergedGroups.push(group.join('\n'));
+
+        const box = document.createElement("div");
+        box.className = "result-box";
+
+        const ta = document.createElement("textarea");
+        ta.rows = group.length;
+        ta.readOnly = true;
+        ta.value = group.join('\n');
+
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.textContent = "Copy";
+        btn.onclick = () => {
+          navigator.clipboard.writeText(ta.value);
+          btn.textContent = "Copied!";
+          setTimeout(() => btn.textContent = "Copy", 1500);
+        };
+
+        box.appendChild(ta);
+        box.appendChild(btn);
+        resultArea.appendChild(box);
+      }
+    }
+
+    function sendAll() {
+      if (mergedGroups.length === 0) {
+        alert("Please generate the output first.");
+        return;
+      }
+
+      const allText = mergedGroups.join("\n\n"); // Combine all chunks
+      const encoded = encodeURIComponent(allText);
+      const url = `https://wa.me/?text=${encoded}`;
+      window.open(url, "_blank");
+    }
+  </script>
 </body>
 </html>
