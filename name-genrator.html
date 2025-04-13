@@ -7,30 +7,30 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #121223;
-      color: white;
+      background-color: #ffffff;
+      color: #222;
       display: flex;
-      justify-content: center;
-      align-items: center;
       flex-direction: column;
-      height: 100vh;
+      align-items: center;
       margin: 0;
-      padding: 15px;
+      padding: 0;
     }
 
     .box {
-      background: #2a2a3d;
+      background: #f3f3f3;
       padding: 25px;
-      border-radius: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
       text-align: center;
       width: 100%;
       max-width: 400px;
+      margin-top: 40px;
     }
 
     h2 {
       margin-top: 0;
-      font-size: 1.5em;
+      font-size: 1.6em;
+      color: #333;
     }
 
     #name {
@@ -38,22 +38,35 @@
       margin: 20px 0;
       word-break: break-word;
       min-height: 40px;
+      color: #444;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .btn {
-      padding: 12px 20px;
-      font-size: 15px;
-      background: #4caf50;
+      padding: 10px 20px;
+      font-size: 14px;
+      background: #1976d2;
+      color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      margin: 5px 0;
-      width: 100%;
       transition: background 0.3s ease;
     }
 
     .btn:hover {
-      background: #43a047;
+      background: #1565c0;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #888;
     }
 
     @media (max-width: 400px) {
@@ -61,7 +74,8 @@
         font-size: 1.2em;
       }
       .btn {
-        font-size: 14px;
+        flex: 1;
+        min-width: 120px;
       }
     }
   </style>
@@ -70,9 +84,15 @@
   <div class="box">
     <h2>Unique Indian Name Generator</h2>
     <div id="name">Click to generate</div>
-    <button class="btn" onclick="generateIndianName()">Generate Name</button>
-    <button class="btn" onclick="copyName()">Copy Name</button>
+    <div class="btn-group">
+      <button class="btn" onclick="generateIndianName()">Generate</button>
+      <button class="btn" onclick="copyName()">Copy</button>
+    </div>
   </div>
+
+  <footer>
+    &copy; Aamir Ali
+  </footer>
 
   <script>
     const firstPrefixes = [
