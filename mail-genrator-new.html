@@ -7,24 +7,23 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f2f4f8;
+      background: #f2f3f8;
       text-align: center;
       padding: 20px;
       margin: 0;
     }
     .container {
       background: #ffffff;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.08);
+      padding: 25px 20px;
+      border-radius: 18px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       max-width: 500px;
       margin: 40px auto 20px;
     }
     .email-box {
       font-size: 20px;
-      margin: 10px 0;
+      margin: 15px 0;
       word-break: break-word;
-      font-weight: bold;
       color: #333;
     }
     button {
@@ -35,8 +34,8 @@
       border-radius: 8px;
       cursor: pointer;
       background: #007bff;
-      color: white;
-      transition: 0.3s;
+      color: #fff;
+      transition: background 0.3s ease;
     }
     button:hover {
       background: #0056b3;
@@ -44,51 +43,33 @@
     ul {
       list-style: none;
       padding: 0;
-      margin-top: 20px;
     }
     li {
       background: #f1f1f1;
-      padding: 12px;
+      padding: 10px;
       border-radius: 10px;
-      margin: 8px 0;
+      margin: 6px 0;
       text-align: left;
-      word-break: break-word;
     }
-    li.empty {
-  text-align: center;
-  background: #fff8cc;
-  color: #555;
-  font-style: italic;
-  padding: 15px;
-  border: 1px solid #ffe58f;
-  border-radius: 10px;
-}
     footer {
-      text-align: center;
-      font-size: 13px;
+      margin-top: 15px;
+      font-size: 14px;
       color: #777;
-      margin-top: 30px;
     }
   </style>
 </head>
 <body>
-
   <div class="container">
     <h2>Temporary Gmail</h2>
     <div class="email-box" id="email">Loading...</div>
-    <div>
-      <button onclick="copyEmail()">Copy Email</button>
-      <button onclick="generateEmail()">Change Email</button>
-    </div>
+    <button onclick="copyEmail()">Copy Email</button>
+    <button onclick="generateEmail()">Change Email</button>
     <h3>Inbox</h3>
-    <ul id="inbox">
-      <li class="empty">Loading messages...</li>
-    </ul>
+    <ul id="inbox">Loading messages...</ul>
   </div>
 
   <footer>© 2025 Aamir Ali. All rights reserved.</footer>
 
-  <!-- Notification Sound -->
   <audio id="notifSound" preload="auto">
     <source src="https://www.soundjay.com/button/sounds/beep-07a.mp3" type="audio/mpeg">
   </audio>
@@ -141,10 +122,14 @@
       const data = await res.json();
       const messages = data['hydra:member'];
 
-      inboxEl.innerHTML = '';
+      if (messages.length > 0 && messages[0].id !== lastMessageId) {
+        document.getElementById("notifSound").play();
+        lastMessageId = messages[0].id;
+      }
 
+      inboxEl.innerHTML = '';
       if (messages.length === 0) {
-        inboxEl.innerHTML = '<li class="empty">No messages yet.</li>';
+        inboxEl.innerHTML = '<li>No messages yet.</li>';
       } else {
         for (let msg of messages) {
           const full = await fetch(`https://api.mail.tm/messages/${msg.id}`, {
@@ -152,11 +137,6 @@
           });
           const msgData = await full.json();
           inboxEl.innerHTML += `<li><strong>${msg.subject}</strong><br>${msgData.text}</li>`;
-
-          if (msg.id !== lastMessageId) {
-            document.getElementById("notifSound").play();
-            lastMessageId = msg.id;
-          }
         }
       }
     }
