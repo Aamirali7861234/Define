@@ -28,24 +28,31 @@
       max-width: 400px;
     }
 
-    #name {
-      font-size: 1.4em;
-      margin: 20px 0;
-      word-break: break-word;
+    h2 {
+      margin-top: 0;
+      font-size: 1.5em;
     }
 
-    button {
+    #name {
+      font-size: 1.3em;
+      margin: 20px 0;
+      word-break: break-word;
+      min-height: 40px;
+    }
+
+    .btn {
       padding: 12px 20px;
       font-size: 15px;
       background: #4caf50;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      margin: 5px;
+      margin: 5px 0;
       width: 100%;
+      transition: background 0.3s ease;
     }
 
-    button:hover {
+    .btn:hover {
       background: #43a047;
     }
 
@@ -53,7 +60,7 @@
       #name {
         font-size: 1.2em;
       }
-      button {
+      .btn {
         font-size: 14px;
       }
     }
@@ -63,8 +70,8 @@
   <div class="box">
     <h2>Unique Indian Name Generator</h2>
     <div id="name">Click to generate</div>
-    <button onclick="generateIndianName()">Generate Name</button>
-    <button onclick="copyName()">Copy Name</button>
+    <button class="btn" onclick="generateIndianName()">Generate Name</button>
+    <button class="btn" onclick="copyName()">Copy Name</button>
   </div>
 
   <script>
@@ -78,16 +85,16 @@
     const firstSuffixes = ["esh", "an", "a", "rao", "nath", "dev", "kar", "endra", "lal", "eshwar"];
 
     const surnames = [
-      "Sharma", "Verma", "Patel", "Yadav", "Mishra", "Singh", "Reddy", "Naidu",
-      "Thakur", "Joshi", "Khan", "Das", "Pandey", "Tripathi", "Chauhan", "Bansal",
-      "Rathi", "Sinha", "Kapoor", "Malhotra", "Jain", "Agarwal", "Mehta", "Gupta", "Saxena",
-      "Chatterjee", "Roy", "Ghosh", "Dutta", "Bose", "Iyer", "Swamy", "Menon", "Pillai",
-      "Shetty", "Pai", "Naik", "Deshmukh", "Kulkarni", "Jadhav", "Gaikwad", "Joshi", "Bhardwaj",
-      "Srivastava", "Rawat", "Gill", "Ahluwalia", "Cheema", "Duggal", "Khatri", "Chhabra", "Makkar",
-      "Kalra", "Bajaj", "Tandon", "Garg", "Mittal", "Chopra", "Oberoi", "Bhatia", "Grover", "Talwar",
-      "Luthra", "Arora", "Sabharwal", "Kaur", "Randhawa", "Sandhu", "Sehgal", "Kapila", "Khanna", "Bhalla",
-      "Sethi", "Ahuja", "Suri", "Taneja", "Bhandari", "Bhasin", "Bindra", "Ahmad", "Iqbal", "Qureshi", "Syed",
-      "Ansari", "Mirza", "Ali", "Farooqi", "Noor", "Shah", "Rehman", "Hashmi", "Siddiqui", "Jafri"
+      "Sharma", "Verma", "Patel", "Yadav", "Mishra", "Singh", "Reddy", "Naidu", "Thakur", "Joshi",
+      "Khan", "Das", "Pandey", "Tripathi", "Chauhan", "Bansal", "Rathi", "Sinha", "Kapoor", "Malhotra",
+      "Jain", "Agarwal", "Mehta", "Gupta", "Saxena", "Chatterjee", "Roy", "Ghosh", "Dutta", "Bose",
+      "Iyer", "Swamy", "Menon", "Pillai", "Shetty", "Pai", "Naik", "Deshmukh", "Kulkarni", "Jadhav",
+      "Gaikwad", "Joshi", "Bhardwaj", "Srivastava", "Rawat", "Gill", "Ahluwalia", "Cheema", "Duggal", "Khatri",
+      "Chhabra", "Makkar", "Kalra", "Bajaj", "Tandon", "Garg", "Mittal", "Chopra", "Oberoi", "Bhatia",
+      "Grover", "Talwar", "Luthra", "Arora", "Sabharwal", "Kaur", "Randhawa", "Sandhu", "Sehgal", "Kapila",
+      "Khanna", "Bhalla", "Sethi", "Ahuja", "Suri", "Taneja", "Bhandari", "Bhasin", "Bindra", "Ahmad",
+      "Iqbal", "Qureshi", "Syed", "Ansari", "Mirza", "Ali", "Farooqi", "Noor", "Shah", "Rehman",
+      "Hashmi", "Siddiqui", "Jafri"
     ];
 
     function generateIndianName() {
@@ -122,9 +129,9 @@
 
     function copyName() {
       const nameText = document.getElementById("name").textContent;
-      navigator.clipboard.writeText(nameText).then(() => {
-        alert("Name copied: " + nameText);
-      });
+      if (nameText && nameText !== "Click to generate" && nameText !== "All unique combinations used!") {
+        navigator.clipboard.writeText(nameText);
+      }
     }
   </script>
 </body>
