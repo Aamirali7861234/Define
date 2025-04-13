@@ -2,144 +2,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Mail.tm Temp Mail</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f3f9f7;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: start;
-            height: 100vh;
-        }
-
-        h1 {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        #emailBox {
-            margin: 20px auto;
-            text-align: center;
-            padding: 15px;
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-        }
-
-        #emailAddress {
-            font-weight: bold;
-            word-wrap: break-word;
-        }
-
-        .btn {
-            margin: 10px 5px;
-            padding: 10px 15px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-            cursor: pointer;
-        }
-
-        #inbox {
-            margin-top: 20px;
-            width: 90%;
-            max-width: 500px;
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Temporary Email</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0faf5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .inbox-container {
+      width: 90%;
+      max-width: 600px;
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    .message {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
 </head>
 <body>
-
-<h1>Temporary Email</h1>
-<div id="emailBox">
-    <div id="emailAddress">Loading...</div>
-    <button class="btn" onclick="copyEmail()">Copy Email</button>
-    <button class="btn" onclick="generateEmail()">Change Email</button>
-</div>
-
-<div id="inbox">
-    <h3>Inbox</h3>
-    <div id="messages">Loading messages...</div>
-</div>
+  <h1>Temporary Email</h1>
+  <div class="btn-group">
+    <button onclick="copyEmail()">Copy Email</button>
+    <button onclick="init()">Change Email</button>
+  </div>
+  <div class="inbox-container">
+    <h2>Inbox</h2>
+    <div id="messages">Loading messages…</div>
+  </div>
 
 <script>
-    let email = '';
-    let token = '';
+  let email = '';
+  let token = '';
+  let id = '';
 
-    function generateEmail() {
-        fetch('https://api.mail.tm/accounts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                address: `user${Math.floor(Math.random()*100000)}@domain.com`,
-                password: 'password123'
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data['@id']) {
-                email = data.address;
-                document.getElementById('emailAddress').textContent = email;
-                login(email, 'password123');
-            } else {
-                document.getElementById('emailAddress').textContent = 'Error generating email.';
-            }
-        });
+  async function init() {
+    document.getElementById('messages').innerHTML = 'Loading messages…';
+    const domains = await fetch("https://api.mail.tm/domains").then(res => res.json());
+    const domain = domains["hydra:member"][0].domain;
+    const random = Math.random().toString(36).substring(7);
+    email = random + '@' + domain;
+
+    const res = await fetch("https://api.mail.tm/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: email, password: "password" })
+    });
+
+    if (res.ok) {
+      const login = await fetch("https://api.mail.tm/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: email, password: "password" })
+      });
+      const data = await login.json();
+      token = data.token;
+      id = data.id;
+      document.querySelector("button").innerText = email;
+      fetchMessages();
+      setInterval(fetchMessages, 10000);
+    } else {
+      document.getElementById('messages').innerHTML = 'Failed to generate email.';
     }
+  }
 
-    function login(email, password) {
-        fetch('https://api.mail.tm/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ address: email, password: password })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.token) {
-                token = data.token;
-                loadMessages();
-            }
-        });
+  async function fetchMessages() {
+    const res = await fetch("https://api.mail.tm/messages", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const messages = data["hydra:member"];
+    const messagesDiv = document.getElementById("messages");
+    if (messages.length === 0) {
+      messagesDiv.innerHTML = "<div>No messages yet.</div>";
+    } else {
+      messagesDiv.innerHTML = messages.map(msg => `
+        <div class="message">
+          <strong>${msg.from.address}</strong><br/>
+          ${msg.subject}<br/>
+          <small>${new Date(msg.createdAt).toLocaleString()}</small>
+        </div>
+      `).join("");
     }
+  }
 
-    function loadMessages() {
-        fetch('https://api.mail.tm/messages', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        })
-        .then(res => res.json())
-        .then(data => {
-            const messages = data['hydra:member'];
-            const msgContainer = document.getElementById('messages');
-            msgContainer.innerHTML = messages.length ? messages.map(msg => `
-                <div style="margin-bottom:10px;">
-                    <b>${msg.from.address}</b><br>${msg.subject}
-                </div>
-            `).join('') : 'No messages yet.';
-        });
-    }
+  function copyEmail() {
+    navigator.clipboard.writeText(email);
+    alert("Email copied: " + email);
+  }
 
-    function copyEmail() {
-        navigator.clipboard.writeText(email).then(() => {
-            alert('Email copied to clipboard!');
-        });
-    }
-
-    // Generate on load
-    generateEmail();
+  init();
 </script>
-
 </body>
 </html>
