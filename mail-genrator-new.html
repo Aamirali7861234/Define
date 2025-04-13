@@ -7,47 +7,54 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      background: #f2f3f8;
       text-align: center;
       padding: 20px;
+      margin: 0;
     }
     .container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      background: #ffffff;
+      padding: 25px 20px;
+      border-radius: 18px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       max-width: 500px;
-      margin: auto;
+      margin: 40px auto 20px;
     }
     .email-box {
       font-size: 20px;
-      margin: 10px 0;
+      margin: 15px 0;
       word-break: break-word;
+      color: #333;
     }
     button {
       margin: 5px;
       padding: 10px 20px;
-      font-size: 16px;
+      font-size: 15px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       background: #007bff;
       color: #fff;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #0056b3;
     }
     ul {
       list-style: none;
       padding: 0;
     }
     li {
-      background: #eee;
+      background: #f1f1f1;
       padding: 10px;
       border-radius: 10px;
-      margin: 5px 0;
+      margin: 6px 0;
+      text-align: left;
     }
     footer {
-      margin-top: 30px;
+      margin-top: 15px;
       font-size: 14px;
-      color: #888;
+      color: #777;
     }
   </style>
 </head>
@@ -59,10 +66,10 @@
     <button onclick="generateEmail()">Change Email</button>
     <h3>Inbox</h3>
     <ul id="inbox">Loading messages...</ul>
-    <footer>© 2025 Aamir Ali. All rights reserved.</footer>
   </div>
 
-  <!-- Notification Sound -->
+  <footer>© 2025 Aamir Ali. All rights reserved.</footer>
+
   <audio id="notifSound" preload="auto">
     <source src="https://www.soundjay.com/button/sounds/beep-07a.mp3" type="audio/mpeg">
   </audio>
@@ -136,7 +143,6 @@
 
     function copyEmail() {
       navigator.clipboard.writeText(email);
-      alert('Email copied!');
     }
 
     generateEmail();
