@@ -4,79 +4,89 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Unique Indian Name Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #ffffff;
-      color: #222;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #ffffff;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
     .box {
-      background: #f3f3f3;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      background: #f9f9f9;
+      margin-top: 50px;
+      padding: 30px 25px;
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       text-align: center;
-      width: 100%;
-      max-width: 400px;
-      margin-top: 40px;
+      width: 90%;
+      max-width: 420px;
+      transition: all 0.3s ease;
+    }
+
+    .box:hover {
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
     }
 
     h2 {
-      margin-top: 0;
-      font-size: 1.6em;
+      font-size: 1.8rem;
       color: #333;
+      margin-bottom: 20px;
     }
 
     #name {
-      font-size: 1.3em;
+      font-size: 1.3rem;
       margin: 20px 0;
+      color: #555;
       word-break: break-word;
-      min-height: 40px;
-      color: #444;
+      min-height: 45px;
     }
 
     .btn-group {
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
     .btn {
-      padding: 10px 20px;
-      font-size: 14px;
-      background: #1976d2;
+      padding: 12px 22px;
+      font-size: 15px;
+      font-weight: 500;
+      background: linear-gradient(to right, #1976d2, #2196f3);
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.25s ease;
     }
 
     .btn:hover {
-      background: #1565c0;
+      background: linear-gradient(to right, #1565c0, #1e88e5);
     }
 
     footer {
-      margin-top: 40px;
-      font-size: 14px;
-      color: #888;
+      margin-top: auto;
+      padding: 20px 10px;
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+      width: 100%;
     }
 
-    @media (max-width: 400px) {
-      #name {
-        font-size: 1.2em;
-      }
-      .btn {
-        flex: 1;
-        min-width: 120px;
-      }
+    footer span {
+      color: #555;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -91,7 +101,7 @@
   </div>
 
   <footer>
-    &copy; Aamir Ali
+    &copy; <span>Aamir Ali</span> 2025 | All rights reserved. Made with passion for uniqueness.
   </footer>
 
   <script>
