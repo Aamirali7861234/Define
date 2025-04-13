@@ -30,13 +30,20 @@
     button {
       padding: 12px 25px;
       font-size: 16px;
+      margin: 10px 5px;
       background: #4caf50;
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      color: white;
     }
     button:hover {
       background: #43a047;
+    }
+    #copyMsg {
+      font-size: 0.9em;
+      margin-top: 5px;
+      color: lightgreen;
     }
   </style>
 </head>
@@ -45,6 +52,8 @@
     <h2>Unique Indian Name Generator</h2>
     <div id="name">Click to generate</div>
     <button onclick="generateIndianName()">Generate Name</button>
+    <button onclick="copyName()">Copy Name</button>
+    <div id="copyMsg"></div>
   </div>
 
   <script>
@@ -60,13 +69,24 @@
     const surnames = [
       "Sharma", "Verma", "Patel", "Yadav", "Mishra", "Singh", "Reddy", "Naidu",
       "Thakur", "Joshi", "Khan", "Das", "Pandey", "Tripathi", "Chauhan", "Bansal",
-      "Rathi", "Sinha", "Kapoor", "Malhotra"
+      "Rathi", "Sinha", "Kapoor", "Malhotra", "Agarwal", "Gupta", "Nair", "Iyer",
+      "Menon", "Bhatia", "Tiwari", "Dubey", "Srivastava", "Jha", "Kulkarni",
+      "Deshmukh", "Bhattacharya", "Chatterjee", "Mukherjee", "Roy", "Ghosh", "Bose",
+      "Chakraborty", "Banerjee", "Sen", "Dutta", "Basak", "Choudhary", "Rastogi",
+      "Aggarwal", "Mehta", "Saxena", "Rawat", "Solanki", "Shetty", "Rana", "Gill",
+      "Ahluwalia", "Bedi", "Cheema", "Sidhu", "Brar", "Deol", "Dhillon", "Puri",
+      "Talwar", "Sodhi", "Sethi", "Grewal", "Wadhwa", "Bhandari", "Kapila", "Grover",
+      "Matta", "Khosla", "Khatri", "Suri", "Sabharwal", "Monga", "Kukreja", "Luthra",
+      "Duggal", "Chhabra", "Jaggi", "Kalra", "Narang", "Arora", "Tandon", "Trehan",
+      "Sawhney", "Narula", "Anand", "Mittal", "Mahajan", "Bindra", "Gulati", "Nijhawan",
+      "Nagpal", "Sehgal", "Juneja", "Bagga", "Chugh"
     ];
 
     function generateIndianName() {
       let tries = 0;
-      let maxTries = 5000; // to avoid infinite loop
-      
+      let maxTries = 5000;
+      let fullName = "";
+
       while (tries < maxTries) {
         let firstName = '';
         while (firstName.length < 12) {
@@ -76,7 +96,7 @@
         }
 
         const lastName = surnames[Math.floor(Math.random() * surnames.length)];
-        const fullName = firstName + " " + lastName;
+        fullName = firstName + " " + lastName;
 
         let usedNames = JSON.parse(localStorage.getItem("usedIndianNames")) || [];
 
@@ -84,6 +104,7 @@
           usedNames.push(fullName);
           localStorage.setItem("usedIndianNames", JSON.stringify(usedNames));
           document.getElementById("name").textContent = fullName;
+          document.getElementById("copyMsg").textContent = "";
           return;
         }
 
@@ -91,6 +112,15 @@
       }
 
       document.getElementById("name").textContent = "All unique combinations used!";
+    }
+
+    function copyName() {
+      const nameText = document.getElementById("name").textContent;
+      if (nameText && nameText !== "Click to generate" && nameText !== "All unique combinations used!") {
+        navigator.clipboard.writeText(nameText).then(() => {
+          document.getElementById("copyMsg").textContent = "Name copied!";
+        });
+      }
     }
   </script>
 </body>
