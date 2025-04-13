@@ -1,98 +1,83 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Unique Indian Name Generator</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #121223;
+      background-color: #0d0d14;
       color: white;
+      font-family: Arial, sans-serif;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
     }
-    .box {
-      background: #2a2a3d;
+    .container {
+      background-color: #1c1c2b;
       padding: 30px;
-      border-radius: 20px;
+      border-radius: 15px;
       text-align: center;
-      width: 90%;
-      max-width: 400px;
+      box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
     }
-    #name { margin: 20px; font-size: 1.5em; }
     button {
+      background-color: #28a745;
+      color: white;
+      border: none;
       padding: 10px 20px;
       font-size: 16px;
-      background: #4caf50;
-      border: none;
       border-radius: 10px;
       cursor: pointer;
+      margin-top: 15px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #nameDisplay {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="box">
+  <div class="container">
     <h2>Unique Indian Name Generator</h2>
-    <div id="name">Click to generate</div>
+    <p>Click to generate</p>
     <button onclick="generateName()">Generate Name</button>
+    <div id="nameDisplay"></div>
   </div>
 
-  <script>
+  <!-- Firebase -->
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    // Your Firebase config
     const firebaseConfig = {
-      apiKey: "AIzaSyDlSf6TL00jS_ZDpTjiNBwzStcDBZ6Jc4s",
+      apiKey: "AIzaSyDlsf6TL00jS_ZDpTjiNBw28x-Du_2ARi4",
       authDomain: "namegeneratorweb.firebaseapp.com",
       projectId: "namegeneratorweb",
       storageBucket: "namegeneratorweb.appspot.com",
       messagingSenderId: "1047403717702",
-      appId: "1:1047403717702:web:50c750c3e9e8e6a2fbd8de"
+      appId: "1:1047403717702:web:50c750c3e1419f8f1604c0"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const firstPrefixes = [
-      "Satyavrat", "Adityanan", "Chandrapra", "Krishnapra", "Meenakshin",
-      "Raghunanda", "RajendraKu", "Vishwajeet", "Mahadevana", "Dharanidha",
-      "Padmanabha", "Subramania", "Gopalakrish", "Ashwinikum", "Sundareswa",
-      "Jayaprakash", "Bhaktavatsa", "Somasundar", "Govindaraj"
-    ];
-    const firstSuffixes = ["esh", "an", "a", "rao", "nath", "dev", "kar", "endra", "lal", "eshwar"];
-    const surnames = [
-      "Sharma", "Verma", "Patel", "Yadav", "Mishra", "Singh", "Reddy", "Naidu", "Thakur", "Joshi",
-      "Khan", "Das", "Pandey", "Tripathi", "Chauhan", "Bansal", "Rathi", "Sinha", "Kapoor", "Malhotra",
-      "Gupta", "Agarwal", "Tiwari", "Bhardwaj", "Srivastava", "Chatterjee", "Roy", "Nair", "Menon", "Shetty",
-      "Iyer", "Kulkarni", "Deshmukh", "Pillai", "Ghosh", "Banerjee", "Pathak", "Dubey", "Joshi", "Mehta",
-      "Jain", "Gandhi", "Lal", "Saxena", "Chopra", "Rana", "Rawat", "Bhatt", "Tripuri", "Mahajan",
-      "Solanki", "Prajapati", "Modi", "Ambani", "Adani", "Mittal", "Goenka", "Kumar", "Madaan", "Salvi",
-      "Sehgal", "Purohit", "Acharya", "Swamy", "Bhave", "Talwar", "Malik", "Bajpai", "Nigam", "Sethi",
-      "Oberoi", "Kohli", "Grover", "Kapadia", "Makhija", "Sodhi", "Chadda", "Bhasin", "Ahluwalia", "Khanna"
-    ];
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
     async function generateName() {
-      let tries = 0;
-      while (tries < 1000) {
-        const first = firstPrefixes[Math.floor(Math.random() * firstPrefixes.length)];
-        const suffix = firstSuffixes[Math.floor(Math.random() * firstSuffixes.length)];
-        const last = surnames[Math.floor(Math.random() * surnames.length)];
-        const fullName = first + suffix + " " + last;
-
-        const nameRef = db.collection("usedNames").doc(fullName);
-        const doc = await nameRef.get();
-        if (!doc.exists) {
-          await nameRef.set({ used: true, timestamp: Date.now() });
-          document.getElementById("name").textContent = fullName;
-          return;
-        }
-        tries++;
-      }
-      document.getElementById("name").textContent = "All names exhausted!";
+      const querySnapshot = await getDocs(collection(db, "names"));
+      const names = [];
+      querySnapshot.forEach((doc) => {
+        names.push(doc.data().name);
+      });
+      const randomName = names[Math.floor(Math.random() * names.length)];
+      document.getElementById("nameDisplay").innerText = randomName || "No names found!";
     }
   </script>
 </body>
