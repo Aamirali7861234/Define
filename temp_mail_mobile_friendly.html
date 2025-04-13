@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mail.tm Temp Mail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f9f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: start;
+            height: 100vh;
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #emailBox {
+            margin: 20px auto;
+            text-align: center;
+            padding: 15px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        #emailAddress {
+            font-weight: bold;
+            word-wrap: break-word;
+        }
+
+        .btn {
+            margin: 10px 5px;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+
+        #inbox {
+            margin-top: 20px;
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<h1>Temporary Email</h1>
+<div id="emailBox">
+    <div id="emailAddress">Loading...</div>
+    <button class="btn" onclick="copyEmail()">Copy Email</button>
+    <button class="btn" onclick="generateEmail()">Change Email</button>
+</div>
+
+<div id="inbox">
+    <h3>Inbox</h3>
+    <div id="messages">Loading messages...</div>
+</div>
+
+<script>
+    let email = '';
+    let token = '';
+
+    function generateEmail() {
+        fetch('https://api.mail.tm/accounts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                address: `user${Math.floor(Math.random()*100000)}@domain.com`,
+                password: 'password123'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data['@id']) {
+                email = data.address;
+                document.getElementById('emailAddress').textContent = email;
+                login(email, 'password123');
+            } else {
+                document.getElementById('emailAddress').textContent = 'Error generating email.';
+            }
+        });
+    }
+
+    function login(email, password) {
+        fetch('https://api.mail.tm/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ address: email, password: password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.token) {
+                token = data.token;
+                loadMessages();
+            }
+        });
+    }
+
+    function loadMessages() {
+        fetch('https://api.mail.tm/messages', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const messages = data['hydra:member'];
+            const msgContainer = document.getElementById('messages');
+            msgContainer.innerHTML = messages.length ? messages.map(msg => `
+                <div style="margin-bottom:10px;">
+                    <b>${msg.from.address}</b><br>${msg.subject}
+                </div>
+            `).join('') : 'No messages yet.';
+        });
+    }
+
+    function copyEmail() {
+        navigator.clipboard.writeText(email).then(() => {
+            alert('Email copied to clipboard!');
+        });
+    }
+
+    // Generate on load
+    generateEmail();
+</script>
+
+</body>
+</html>
