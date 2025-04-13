@@ -44,6 +44,11 @@
       border-radius: 10px;
       margin: 5px 0;
     }
+    footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
@@ -54,11 +59,12 @@
     <button onclick="generateEmail()">Change Email</button>
     <h3>Inbox</h3>
     <ul id="inbox">Loading messages...</ul>
+    <footer>© 2025 Aamir Ali. All rights reserved.</footer>
   </div>
 
-  <!-- Notification Sound (Beep sound embedded as base64) -->
+  <!-- Notification Sound -->
   <audio id="notifSound" preload="auto">
-    <source src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA... (shortened)" type="audio/mp3">
+    <source src="https://www.soundjay.com/button/sounds/beep-07a.mp3" type="audio/mpeg">
   </audio>
 
   <script>
@@ -134,7 +140,7 @@
     }
 
     generateEmail();
-    setInterval(loadInbox, 10000); // Refresh inbox every 10 sec
+    setInterval(loadInbox, 10000);
   </script>
 </body>
 </html>
