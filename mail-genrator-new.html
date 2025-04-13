@@ -1,142 +1,140 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Temp Email - Mail.tm</title>
+  <meta charset="UTF-8">
+  <title>Temporary Gmail - OTP Inbox</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f2f2f2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      text-align: center;
+      padding: 20px;
     }
     .container {
       background: #fff;
       padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 400px;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin: auto;
     }
-    h2 {
-      margin-top: 0;
-      font-size: 22px;
-      text-align: center;
-    }
-    #emailBox {
-      font-weight: bold;
-      font-size: 16px;
-      word-break: break-all;
-      margin-bottom: 10px;
+    .email-box {
+      font-size: 20px;
+      margin: 10px 0;
+      word-break: break-word;
     }
     button {
-      padding: 8px 12px;
       margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
       border: none;
       border-radius: 8px;
-      background: #007bff;
-      color: white;
       cursor: pointer;
+      background: #007bff;
+      color: #fff;
     }
-    button:hover {
-      background: #0056b3;
+    ul {
+      list-style: none;
+      padding: 0;
     }
-    #messages {
-      margin-top: 20px;
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+    li {
+      background: #eee;
       padding: 10px;
-      background: #fafafa;
+      border-radius: 10px;
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Temp Email (mail.tm)</h2>
-    <div id="emailBox">Loading...</div>
+    <h2>Temporary Gmail</h2>
+    <div class="email-box" id="email">Loading...</div>
     <button onclick="copyEmail()">Copy Email</button>
     <button onclick="generateEmail()">Change Email</button>
-    <div id="messages">Waiting for OTP...</div>
+    <h3>Inbox</h3>
+    <ul id="inbox">Loading messages...</ul>
   </div>
-  <audio id="notifySound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
+  <!-- Notification Sound (Beep sound embedded as base64) -->
+  <audio id="notifSound" preload="auto">
+    <source src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA... (shortened)" type="audio/mp3">
+  </audio>
+
   <script>
-    let currentEmail = "";
-    let currentId = "";
-    let lastMsgId = null;
+    let token = '';
+    let addressId = '';
+    let email = '';
+    let lastMessageId = '';
 
     async function generateEmail() {
-      document.getElementById("messages").innerHTML = "Waiting for OTP...";
-      const resp = await fetch("https://api.mail.tm/accounts", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          address: "",
-          password: "password123"
-        })
+      const domainRes = await fetch('https://api.mail.tm/domains');
+      const domains = await domainRes.json();
+      const domain = domains['hydra:member'][0].domain;
+
+      const random = Math.random().toString(36).substring(2, 10);
+      email = `${random}@${domain}`;
+      const password = 'Test@1234';
+
+      await fetch('https://api.mail.tm/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: email, password })
       });
-      const data = await resp.json();
-      if (data.address) {
-        currentEmail = data.address;
-        currentId = data.id;
-        document.getElementById("emailBox").innerText = currentEmail;
-        loginAndStart();
-      } else {
-        alert("Failed to create email. Try again.");
-      }
+
+      const tokenRes = await fetch('https://api.mail.tm/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: email, password })
+      });
+      const tokenData = await tokenRes.json();
+      token = tokenData.token;
+
+      const meRes = await fetch('https://api.mail.tm/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const meData = await meRes.json();
+      addressId = meData.id;
+
+      document.getElementById('email').innerText = email;
+      lastMessageId = '';
+      loadInbox();
     }
 
-    async function loginAndStart() {
-      const login = await fetch("https://api.mail.tm/token", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          address: currentEmail,
-          password: "password123"
-        })
-      });
-      const loginData = await login.json();
-      const token = loginData.token;
-      checkInbox(token);
-      setInterval(() => checkInbox(token), 10000);
-    }
-
-    async function checkInbox(token) {
-      const res = await fetch("https://api.mail.tm/messages", {
-        headers: { Authorization: "Bearer " + token }
+    async function loadInbox() {
+      const inboxEl = document.getElementById('inbox');
+      const res = await fetch('https://api.mail.tm/messages', {
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      const messages = data["hydra:member"];
-      if (messages.length > 0 && messages[0].id !== lastMsgId) {
-        lastMsgId = messages[0].id;
-        const mail = await fetch("https://api.mail.tm/messages/" + lastMsgId, {
-          headers: { Authorization: "Bearer " + token }
-        });
-        const mailData = await mail.json();
-        document.getElementById("messages").innerText =
-          "From: " + mailData.from.address + "
-Subject: " + mailData.subject + "
+      const messages = data['hydra:member'];
 
-" +
-          mailData.text;
-        document.getElementById("notifySound").play();
+      if (messages.length > 0 && messages[0].id !== lastMessageId) {
+        document.getElementById("notifSound").play();
+        lastMessageId = messages[0].id;
+      }
+
+      inboxEl.innerHTML = '';
+      if (messages.length === 0) {
+        inboxEl.innerHTML = '<li>No messages yet.</li>';
+      } else {
+        for (let msg of messages) {
+          const full = await fetch(`https://api.mail.tm/messages/${msg.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const msgData = await full.json();
+          inboxEl.innerHTML += `<li><strong>${msg.subject}</strong><br>${msgData.text}</li>`;
+        }
       }
     }
 
     function copyEmail() {
-      navigator.clipboard.writeText(currentEmail).then(() => {
-        alert("Email copied!");
-      });
+      navigator.clipboard.writeText(email);
+      alert('Email copied!');
     }
 
-    // Generate email on page load
     generateEmail();
+    setInterval(loadInbox, 10000); // Refresh inbox every 10 sec
   </script>
 </body>
 </html>
