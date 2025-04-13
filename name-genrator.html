@@ -4,80 +4,80 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Unique Indian Name Generator</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
     body {
-      background-color: #0d0d14;
-      color: white;
+      margin: 0;
       font-family: Arial, sans-serif;
+      background-color: #0f111a;
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
     .container {
-      background-color: #1c1c2b;
+      background-color: #1e2235;
       padding: 30px;
-      border-radius: 15px;
+      border-radius: 16px;
       text-align: center;
-      box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    .title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .name-box {
+      font-size: 18px;
+      margin: 15px 0;
     }
     button {
       background-color: #28a745;
-      color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 10px 18px;
+      color: white;
       font-size: 16px;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      margin-top: 15px;
     }
     button:hover {
       background-color: #218838;
-    }
-    #nameDisplay {
-      margin-top: 20px;
-      font-size: 24px;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Unique Indian Name Generator</h2>
-    <p>Click to generate</p>
+    <div class="title">Unique Indian Name Generator</div>
+    <div id="nameBox" class="name-box">Click to generate</div>
     <button onclick="generateName()">Generate Name</button>
-    <div id="nameDisplay"></div>
   </div>
 
-  <!-- Firebase -->
-  <script type="module">
-    // Import Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-    // Your Firebase config
+  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyDlsf6TL00jS_ZDpTjiNBw28x-Du_2ARi4",
-      authDomain: "namegeneratorweb.firebaseapp.com",
-      projectId: "namegeneratorweb",
-      storageBucket: "namegeneratorweb.appspot.com",
-      messagingSenderId: "1047403717702",
-      appId: "1:1047403717702:web:50c750c3e1419f8f1604c0"
+      apiKey: "AIzaSyAsZvwOQTI_uC9xj3Gc7F9Y...",
+      authDomain: "namegenerator-89d43.firebaseapp.com",
+      projectId: "namegenerator-89d43",
+      storageBucket: "namegenerator-89d43.appspot.com",
+      messagingSenderId: "649907816972",
+      appId: "1:649907816972:web:5f7f0fb71b...",
+      measurementId: "G-3R171E2JXQ"
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
     async function generateName() {
-      const querySnapshot = await getDocs(collection(db, "names"));
-      const names = [];
-      querySnapshot.forEach((doc) => {
-        names.push(doc.data().name);
-      });
-      const randomName = names[Math.floor(Math.random() * names.length)];
-      document.getElementById("nameDisplay").innerText = randomName || "No names found!";
+      try {
+        const snapshot = await db.collection("names").get();
+        const names = snapshot.docs.map(doc => doc.data().name);
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        document.getElementById("nameBox").textContent = randomName || "No names found!";
+      } catch (error) {
+        document.getElementById("nameBox").textContent = "Error fetching names!";
+        console.error("Error:", error);
+      }
     }
   </script>
 </body>
