@@ -1,79 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Temp Email Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f4f7fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 20px;
     }
-    .email-box {
-      font-size: 18px;
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    #email-box {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    #email {
       font-weight: bold;
-      margin-bottom: 10px;
+      font-size: 18px;
+      word-break: break-all;
+      margin: 10px 0;
     }
     button {
+      margin: 5px;
       padding: 10px 15px;
       font-size: 16px;
-      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #messages {
+      margin-top: 20px;
+      text-align: left;
+      width: 100%;
+      max-width: 400px;
     }
     .message {
-      border: 1px solid #ccc;
-      margin-top: 10px;
+      background: #fff;
+      margin: 5px 0;
       padding: 10px;
-      text-align: left;
+      border-radius: 5px;
+      font-size: 14px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    }
+    .error {
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <h2>Temporary Email Generator</h2>
-  <div class="email-box" id="tempEmail">Loading...</div>
-  <button onclick="generateNewEmail()">Change Email</button>
+  <h1>Temporary Email Generator</h1>
 
-  <h3>Messages:</h3>
-  <div id="messages">Checking for OTP...</div>
+  <div id="email-box">
+    <div id="email">Loading...</div>
+    <button onclick="copyEmail()">Copy Email</button>
+    <button onclick="generateEmail()">Change Email</button>
+    <div id="error" class="error"></div>
+  </div>
+
+  <div id="messages">
+    <h3>Messages:</h3>
+    <div id="messageList">Loading...</div>
+  </div>
 
   <script>
-    let login = "";
-    let domain = "";
+    let account = {};
+    let token = '';
+    let interval;
 
-    function generateNewEmail() {
-      login = Math.random().toString(36).substring(2, 10);
-      domain = "1secmail.com";
-      const email = `${login}@${domain}`;
-      document.getElementById("tempEmail").textContent = email;
-      fetchMessages();
-    }
-
-    async function fetchMessages() {
-      const messagesDiv = document.getElementById("messages");
+    async function generateEmail() {
+      clearInterval(interval);
+      document.getElementById("error").innerText = "";
+      document.getElementById("messageList").innerHTML = "Loading...";
       try {
-        const response = await fetch(`https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`);
-        const data = await response.json();
-        messagesDiv.innerHTML = "";
+        const domains = await (await fetch("https://api.mail.tm/domains")).json();
+        const domain = domains["hydra:member"][0].domain;
+        const random = Math.random().toString(36).substring(2, 10);
+        const address = `${random}@${domain}`;
+        const password = "TempPass123!";
 
-        if (data.length === 0) {
-          messagesDiv.textContent = "No messages yet.";
-        } else {
-          for (let msg of data) {
-            const mailResp = await fetch(`https://www.1secmail.com/api/v1/?action=readMessage&login=${login}&domain=${domain}&id=${msg.id}`);
-            const mail = await mailResp.json();
-            messagesDiv.innerHTML += `<div class="message"><strong>From:</strong> ${mail.from}<br><strong>Subject:</strong> ${mail.subject}<br><strong>Text:</strong><br>${mail.textBody}</div>`;
-          }
-        }
+        const register = await fetch("https://api.mail.tm/accounts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address, password })
+        });
+
+        if (!register.ok) throw new Error("Failed to create account");
+
+        account = { address, password };
+        document.getElementById("email").innerText = address;
+
+        const login = await fetch("https://api.mail.tm/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(account)
+        });
+
+        const loginData = await login.json();
+        token = loginData.token;
+
+        fetchMessages();
+        interval = setInterval(fetchMessages, 10000);
       } catch (err) {
-        messagesDiv.textContent = "Error fetching messages.";
+        document.getElementById("error").innerText = "Error initializing email.";
+        console.error(err);
       }
     }
 
-    // Refresh every 10 seconds
-    setInterval(fetchMessages, 10000);
+    async function fetchMessages() {
+      try {
+        const res = await fetch("https://api.mail.tm/messages", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const messages = data["hydra:member"];
+        const list = messages.map(msg => `<div class="message"><b>${msg.from.address}</b><br>${msg.subject}</div>`).join("");
+        document.getElementById("messageList").innerHTML = list || "No messages yet.";
+      } catch (err) {
+        document.getElementById("messageList").innerHTML = "<span class='error'>Failed to load messages.</span>";
+      }
+    }
 
-    // Init
-    generateNewEmail();
+    function copyEmail() {
+      const email = document.getElementById("email").innerText;
+      navigator.clipboard.writeText(email).then(() => {
+        alert("Email copied!");
+      }).catch(err => {
+        alert("Failed to copy email.");
+      });
+    }
+
+    generateEmail(); // auto-generate on load
   </script>
 
 </body>
