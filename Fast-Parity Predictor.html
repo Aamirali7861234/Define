@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fast-Parity Predictor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    #predictionArea {
+      font-size: 20px;
+      margin-top: 15px;
+    }
+    .history-item {
+      margin: 2px 0;
+    }
+    .r { color: #ff3333; }
+    .g { color: #00ff66; }
+    .warn {
+      color: yellow;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>BossWin Fast-Parity Predictor</h2>
+
+  <input type="text" id="periodInput" placeholder="Enter Period Number" />
+  <input type="text" id="resultInput" placeholder="Enter Result (R/G)" />
+  <button onclick="submitResult()">Submit</button>
+
+  <div id="predictionArea"></div>
+  <div id="stopSuggestion" class="warn"></div>
+  <div id="countdown" class="warn"></div>
+  <div id="result"></div>
+
+  <audio id="beep" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3"></audio>
+
+  <script>
+    let history = [];
+    let predictionCount = 0;
+    let lastPrediction = null;
+    let countdownInterval = null;
+    const minResultsToPredict = 5;
+
+    function submitResult() {
+      const period = document.getElementById("periodInput").value.trim();
+      const result = document.getElementById("resultInput").value.trim().toUpperCase();
+
+      if (!period || !result || (result !== 'R' && result !== 'G')) {
+        alert("Enter valid period and result (R/G)");
+        return;
+      }
+
+      if (history.some(h => h.period === period)) {
+        alert("This period is already recorded.");
+        return;
+      }
+
+      history.unshift({ period, result });  // Add to top
+      showHistory();
+
+      // Keep inputs for edit
+      document.getElementById("periodInput").focus();
+
+      if (history.length >= minResultsToPredict) {
+        const nextPeriod = parseInt(period) + 1;
+        const prediction = predictNextColor();
+        const confidence = calculateConfidence(prediction);
+
+        lastPrediction = { period: nextPeriod, prediction };
+        predictionCount++;
+
+        document.getElementById("beep").play();
+        document.getElementById("predictionArea").innerHTML =
+          `Prediction for Period ${nextPeriod}: <b class="${prediction.toLowerCase()}">${prediction}</b> (Confidence: ${confidence}%)`;
+
+        if (predictionCount % 3 === 0) {
+          document.getElementById("stopSuggestion").innerHTML = "Tip: Stop Game Now or Take a Break!";
+          startCountdown(180); // 3 minutes
+        } else {
+          document.getElementById("stopSuggestion").innerHTML = "";
+          document.getElementById("countdown").innerHTML = "";
+          clearInterval(countdownInterval);
+        }
+      }
+    }
+
+    function predictNextColor() {
+      const reds = history.filter(h => h.result === 'R').length;
+      const greens = history.filter(h => h.result === 'G').length;
+      return greens > reds ? 'R' : 'G';
+    }
+
+    function calculateConfidence(prediction) {
+      const count = history.slice(0, 5).filter(h => h.result === prediction).length;
+      return 60 + count * 8;
+    }
+
+    function showHistory() {
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "<h3>History</h3>" + history.map(h =>
+        `<div class="history-item">${h.period} - <span class="${h.result.toLowerCase()}">${h.result}</span></div>`
+      ).join("");
+    }
+
+    function startCountdown(seconds) {
+      clearInterval(countdownInterval);
+      const countdownEl = document.getElementById("countdown");
+
+      function updateCountdown() {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        countdownEl.textContent = `Break Countdown: ${mins}:${secs < 10 ? "0" : ""}${secs}`;
+        if (seconds <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = "Break Over! History Reset.";
+          history = [];
+          predictionCount = 0;
+          lastPrediction = null;
+          document.getElementById("predictionArea").innerHTML = "";
+          document.getElementById("result").innerHTML = "";
+          document.getElementById("stopSuggestion").innerHTML = "";
+        }
+        seconds--;
+      }
+
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
+    }
+  </script>
+</body>
+</html>
