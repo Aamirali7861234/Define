@@ -98,9 +98,9 @@
     <textarea id="input" placeholder="Paste your data here..."></textarea>
     <label>Group Size:</label>
     <select id="chunkSize">
-      <option value="1">1</option>
+      <option value="1" selected>1</option>
       <option value="4">4</option>
-      <option value="8" selected>8</option>
+      <option value="8">8</option>
       <option value="10">10</option>
     </select>
     <button onclick="merge()">Generate</button>
@@ -112,12 +112,12 @@
   </div>
 
   <script>
-    let finalList = [];
+    let mergedGroups = [];
 
     function merge() {
       const raw = document.getElementById("input").value.trim().split("===");
       const chunkSize = parseInt(document.getElementById("chunkSize").value);
-      finalList = [];
+      let finalList = [];
 
       raw.forEach(block => {
         const lines = block.trim().split('\n');
@@ -149,8 +149,11 @@
       countBox.textContent = `Total: ${finalList.length} entries`;
       resultArea.appendChild(countBox);
 
+      mergedGroups = [];
+
       for (let i = 0; i < finalList.length; i += chunkSize) {
         const group = finalList.slice(i, i + chunkSize);
+        mergedGroups.push(group.join('\n'));
 
         const box = document.createElement("div");
         box.className = "result-box";
@@ -176,17 +179,17 @@
     }
 
     function sendAll() {
-      if (finalList.length === 0) {
+      if (mergedGroups.length === 0) {
         alert("Please generate the output first.");
         return;
       }
 
-      finalList.forEach((msg, index) => {
-        const encoded = encodeURIComponent(msg);
-        const url = `https://wa.me/?text=${encoded}`;
+      mergedGroups.forEach((text, index) => {
         setTimeout(() => {
+          const encoded = encodeURIComponent(text);
+          const url = `https://wa.me/?text=${encoded}`;
           window.open(url, "_blank");
-        }, index * 1500); // 1.5 sec delay between messages
+        }, index * 1000); // 1 sec delay between tabs
       });
     }
   </script>
