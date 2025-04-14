@@ -3,151 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <title>Fast-Parity Predictor</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       background: #111;
-      color: white;
-      margin: 0;
+      color: #fff;
+      text-align: center;
       padding: 20px;
+      margin: 0;
     }
-    h2 { color: #0f0; }
-    input, select, button {
-      font-size: 18px;
-      margin: 5px 0;
-      padding: 10px;
-      width: 100%;
-      border-radius: 10px;
+    input, button {
+      padding: 12px;
+      font-size: 16px;
+      margin: 8px 0;
+      width: 90%;
+      max-width: 400px;
       border: none;
+      border-radius: 8px;
     }
-    .result-box {
-      margin-top: 20px;
-      padding: 10px;
-      background: #222;
-      border-radius: 10px;
+    button {
+      background-color: #00cc66;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
     }
-    .green { color: #0f0; }
-    .red { color: red; }
-    .conf { font-weight: bold; }
-    .history {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-top: 20px;
-    }
-    .countdown {
-      color: yellow;
+    #predictionArea {
       font-size: 20px;
+      margin-top: 15px;
+    }
+    .history-item {
+      margin: 2px 0;
+    }
+    .r { color: #ff3333; }
+    .g { color: #00ff66; }
+    .warn {
+      color: yellow;
       margin-top: 10px;
+    }
+    #result {
+      margin-top: 15px;
+      text-align: left;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
+  <h2>BossWin Fast-Parity Predictor</h2>
 
-  <h2>Fast-Parity Predictor</h2>
+  <input type="text" id="periodInput" placeholder="Enter Period Number" />
+  <input type="text" id="resultInput" placeholder="Enter Result (R/G)" />
+  <button onclick="submitResult()">Submit</button>
 
-  <input type="text" id="periodInput" placeholder="Enter Period Number">
-  <select id="colorInput">
-    <option value="green">Green</option>
-    <option value="red">Red</option>
-  </select>
-  <button onclick="submitResult()">Submit Result</button>
+  <div id="predictionArea"></div>
+  <div id="stopSuggestion" class="warn"></div>
+  <div id="countdown" class="warn"></div>
+  <div id="result"></div>
 
-  <div class="result-box" id="predictionBox"></div>
-  <div class="countdown" id="countdownBox"></div>
-
-  <div class="history" id="historyBox"></div>
-
-  <audio id="sound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+  <audio id="beep" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3"></audio>
 
   <script>
     let history = [];
-    let wins = 0, losses = 0, balance = 0;
-    let countdownActive = false;
+    let predictionCount = 0;
+    let lastPrediction = null;
+    let countdownInterval = null;
+    const minResultsToPredict = 5;
 
     function submitResult() {
-      const period = document.getElementById("periodInput").value;
-      const color = document.getElementById("colorInput").value;
-      if (!period || !color) return alert("Please enter both period and result!");
+      const period = document.getElementById("periodInput").value.trim();
+      const result = document.getElementById("resultInput").value.trim().toUpperCase();
 
-      const prev = history.slice(-5).map(h => h.color);
-      const prediction = getPrediction(prev);
-      const correct = prediction.color === color;
-      const conf = prediction.conf;
-
-      // Play sound
-      document.getElementById("sound").play();
-
-      // Update stats
-      history.push({ period, color, predicted: prediction.color, conf, win: correct });
-      if (correct) {
-        wins++; balance += 100;
-      } else {
-        losses++; balance -= 100;
+      if (!period || !result || (result !== 'R' && result !== 'G')) {
+        alert("Enter valid period and result (R/G)");
+        return;
       }
 
-      // Show prediction
-      const resultBox = document.getElementById("predictionBox");
-      resultBox.innerHTML = `
-        <div>Next Period Prediction: <b class="${prediction.color}">${prediction.color.toUpperCase()}</b></div>
-        <div>Confidence: <span class="conf">${conf}%</span></div>
-        <div>Total: ${wins} Wins / ${losses} Losses — Balance: ₹${balance}</div>
-      `;
+      if (history.some(h => h.period === period)) {
+        alert("This period is already recorded.");
+        return;
+      }
 
-      // Update history
-      const historyBox = document.getElementById("historyBox");
-      historyBox.innerHTML = history.slice().reverse().map(h =>
-        `<div>#${h.period} — Actual: <b class="${h.color}">${h.color}</b>, Predicted: <b class="${h.predicted}">${h.predicted}</b> — ${h.win ? '<span class="green">WIN</span>' : '<span class="red">LOSS</span>'}</div>`
-      ).join("");
+      history.unshift({ period, result });  // Add to top
+      showHistory();
 
-      // Reset input for editing
       document.getElementById("periodInput").focus();
 
-      // Auto Break every 3 games
-      if (history.length % 3 === 0 && !countdownActive) {
-        startCountdown();
-      }
-    }
+      if (history.length >= minResultsToPredict) {
+        const nextPeriod = parseInt(period) + 1;
+        const prediction = predictNextColor();
+        const confidence = calculateConfidence(prediction);
 
-    function getPrediction(pastColors) {
-      let greenCount = pastColors.filter(c => c === "green").length;
-      let redCount = pastColors.filter(c => c === "red").length;
-      let prediction = "green";
-      let conf = 50;
+        lastPrediction = { period: nextPeriod, prediction };
+        predictionCount++;
 
-      if (greenCount > redCount) {
-        prediction = "red";
-        conf = 60 + Math.floor(Math.random() * 10);
-      } else if (redCount > greenCount) {
-        prediction = "green";
-        conf = 60 + Math.floor(Math.random() * 10);
-      } else {
-        conf = 55;
-      }
+        document.getElementById("beep").play();
+        document.getElementById("predictionArea").innerHTML =
+          `Prediction for Period ${nextPeriod}: <b class="${prediction.toLowerCase()}">${prediction}</b> (Confidence: ${confidence}%)`;
 
-      return { color: prediction, conf };
-    }
-
-    function startCountdown() {
-      countdownActive = true;
-      let seconds = 180;
-      const box = document.getElementById("countdownBox");
-
-      const interval = setInterval(() => {
-        let m = Math.floor(seconds / 60);
-        let s = seconds % 60;
-        box.innerText = `Break Time: ${m}:${s.toString().padStart(2, "0")}`;
-        seconds--;
-
-        if (seconds < 0) {
-          clearInterval(interval);
-          box.innerText = "";
-          history = []; // auto reset after break
-          wins = 0; losses = 0; balance = 0;
-          document.getElementById("historyBox").innerHTML = "";
-          countdownActive = false;
+        if (predictionCount % 3 === 0) {
+          document.getElementById("stopSuggestion").innerHTML = "Tip: Stop Game Now or Take a Break!";
+          startCountdown(180); // 3 minutes
+        } else {
+          document.getElementById("stopSuggestion").innerHTML = "";
+          document.getElementById("countdown").innerHTML = "";
+          clearInterval(countdownInterval);
         }
-      }, 1000);
+      }
+    }
+
+    function predictNextColor() {
+      const reds = history.filter(h => h.result === 'R').length;
+      const greens = history.filter(h => h.result === 'G').length;
+      return greens > reds ? 'R' : 'G';
+    }
+
+    function calculateConfidence(prediction) {
+      const count = history.slice(0, 5).filter(h => h.result === prediction).length;
+      return 60 + count * 8;
+    }
+
+    function showHistory() {
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "<h3>History</h3>" + history.map(h =>
+        `<div class="history-item">${h.period} - <span class="${h.result.toLowerCase()}">${h.result}</span></div>`
+      ).join("");
+    }
+
+    function startCountdown(seconds) {
+      clearInterval(countdownInterval);
+      const countdownEl = document.getElementById("countdown");
+
+      function updateCountdown() {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        countdownEl.textContent = `Break Countdown: ${mins}:${secs < 10 ? "0" : ""}${secs}`;
+        if (seconds <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = "Break Over! History Reset.";
+          history = [];
+          predictionCount = 0;
+          lastPrediction = null;
+          document.getElementById("predictionArea").innerHTML = "";
+          document.getElementById("result").innerHTML = "";
+          document.getElementById("stopSuggestion").innerHTML = "";
+        }
+        seconds--;
+      }
+
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
     }
   </script>
 </body>
