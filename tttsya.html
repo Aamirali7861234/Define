@@ -90,6 +90,21 @@
     #sendAllBtn:hover {
       background-color: #128C7E;
     }
+    .visitor-counter {
+      margin-top: 30px;
+      padding: 14px 20px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+      background: #e3f2fd;
+      border-radius: 10px;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -106,9 +121,14 @@
     <button onclick="merge()">Generate</button>
     <button id="sendAllBtn" onclick="sendAll()">Send All via WhatsApp</button>
     <div id="resultArea"></div>
-  </div>
-  <div style="text-align: center; margin-top: 40px; font-size: 14px; color: #777;">
-    &copy; 2024 Aamir Ali. All rights reserved.
+
+    <div class="visitor-counter">
+      <span id="visitor-count">Loading today's visitors...</span>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; font-size: 14px; color: #777;">
+      &copy; 2024 Aamir Ali. All rights reserved.
+    </div>
   </div>
 
   <script>
@@ -191,6 +211,35 @@
           window.open(url, "_blank");
         }, index * 1000); // 1 sec delay between tabs
       });
+    }
+
+    // Visitor counter
+    const today = new Date().toISOString().split('T')[0];
+    const visitedKey = `visited_${today}`;
+
+    function updateVisitorDisplay(count) {
+      document.getElementById("visitor-count").innerText = `Today's Visitors: ${count}`;
+    }
+
+    if (!localStorage.getItem(visitedKey)) {
+      fetch('https://api.countapi.xyz/update/otpmerger/aamirali/?amount=1')
+        .then(res => res.json())
+        .then(data => {
+          localStorage.setItem(visitedKey, 'true');
+          updateVisitorDisplay(data.value);
+        })
+        .catch(() => {
+          updateVisitorDisplay("Unavailable");
+        });
+    } else {
+      fetch('https://api.countapi.xyz/get/otpmerger/aamirali/')
+        .then(res => res.json())
+        .then(data => {
+          updateVisitorDisplay(data.value);
+        })
+        .catch(() => {
+          updateVisitorDisplay("Unavailable");
+        });
     }
   </script>
 </body>
