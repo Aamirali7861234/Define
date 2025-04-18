@@ -254,15 +254,14 @@
           const otp = extractOtp(content);
 
           if (otp && otp !== lastOtp) {
-            lastOtp = otp;
-            document.getElementById("notifSound").play();
-            saveToHistory(email, otp);
-            inboxEl.innerHTML = `<li>${otp}</li>`;
-            clearInterval(interval);
-            foundNewOtp = true;
-            break;
-          }
-        }
+  lastOtp = otp;
+  document.getElementById("notifSound").play();
+  saveToHistory(email, otp);
+  inboxEl.innerHTML = `<li>${otp}</li>`;
+  clearInterval(interval);
+  return; // OTP mil gaya, ab function se bahar nikal jao
+}
+        
 
         if (!foundNewOtp) {
           inboxEl.innerHTML = lastOtp ? `<li>${lastOtp}</li>` : '<li>Message found, but no OTP.</li>';
