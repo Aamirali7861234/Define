@@ -108,17 +108,30 @@
     const firstSuffixes = ["esh", "an", "a", "rao", "nath", "dev", "kar", "endra", "lal", "eshwar"];
 
     const surnames = [
-      "Sharma", "Verma", "Patel", "Yadav", "Mishra", "Singh", "Reddy", "Naidu", "Thakur", "Joshi",
-      "Khan", "Das", "Pandey", "Tripathi", "Chauhan", "Bansal", "Rathi", "Sinha", "Kapoor", "Malhotra",
-      "Jain", "Agarwal", "Mehta", "Gupta", "Saxena", "Chatterjee", "Roy", "Ghosh", "Dutta", "Bose",
-      "Iyer", "Swamy", "Menon", "Pillai", "Shetty", "Pai", "Naik", "Deshmukh", "Kulkarni", "Jadhav",
-      "Gaikwad", "Joshi", "Bhardwaj", "Srivastava", "Rawat", "Gill", "Ahluwalia", "Cheema", "Duggal", "Khatri",
-      "Chhabra", "Makkar", "Kalra", "Bajaj", "Tandon", "Garg", "Mittal", "Chopra", "Oberoi", "Bhatia",
-      "Grover", "Talwar", "Luthra", "Arora", "Sabharwal", "Kaur", "Randhawa", "Sandhu", "Sehgal", "Kapila",
-      "Khanna", "Bhalla", "Sethi", "Ahuja", "Suri", "Taneja", "Bhandari", "Bhasin", "Bindra", "Ahmad",
-      "Iqbal", "Qureshi", "Syed", "Ansari", "Mirza", "Ali", "Farooqi", "Noor", "Shah", "Rehman",
-      "Hashmi", "Siddiqui", "Jafri"
-    ];
+  "Chatterjee", "Chandrasen", "Chandrabhan", "Ramaswamy", "Ramachand", "Vishwanath", "Jagannath", "Chandrakant", "Ravichandr", "Bhaktavats",
+  "Subramani", "Venkatesh", "Ramakrishn", "Raghunatha", "Thirunavuk", "Mahadevan", "Padmanabha", "Somasundar", "Govindaraj", "Bhagirathi",
+  "Chandrashek", "Ramasubram", "Karthikey", "Sivashankar", "Anantharam", "Parthasara", "Chandramoul", "Rajasekhar", "Chidambaram", "Satyavrat",
+  "Satyendra", "Bhaktavatsal", "Ramakrishna", "Maheshwara", "Vishwajeet", "Adityanand", "Chandraprak", "Krishnapra", "Meenakshina", "Raghunanda",
+  "Rajendrakum", "Dharanidhar", "Ashwinikum", "Sundareswar", "Jayaprakash", "Vishwanatha", "Narayanmur", "Krishnakan", "Ravindrana", "Ramakantha",
+  "Sundaramoorthy", "Jagadeesan", "Narayanana", "Balasubra", "Venkatapat", "Thiruvallu", "Chandralek", "Sreenivasa", "Manoharan", "Balakrishn",
+  "Bhupendrak", "Chandravadh", "Dayanandan", "Ekanathan", "Harinaraya", "Jagatprak", "Kamalaksha", "Laxminara", "Mahadevana", "Narasimhan",
+  "Omprakash", "Pradyumnan", "Raghavendr", "Sambashiva", "Thulasiram", "Upendrana", "Vasanthkum", "Yugadharma", "Bhagavatku", "Chandramani",
+  "Devendrana", "Eshwaranand", "Gopalakrish", "Harikrishn", "Indradevan", "Jayakrishn", "Keshavanan", "Lokendraka", "Manikandan", "Narasappa",
+  "Prabhakara", "Ramalingam", "Sankaranar", "Thirunavukkar", "Umapathyan", "Venkataram", "Yogeshwara", "Bhagwanram", "Dharanendra", "Gurunathan",
+  "Harshavard", "Ishwaranand", "Jagannatha", "Kanakadhara", "Lakshminar", "Madhusudhan", "Narottaman", "Padmakaran", "Raghuraman", "Samarthana",
+  "Trivikrama", "Vishwajeeta", "Yogavandit", "Abhimanyu", "Bhaktimaan", "Chandravir", "Devavratha", "Eshwarnath", "Gopalkrish", "Harinarayn",
+  "Indumathi", "Jnanadevan", "Kamalakant", "Lokanathan", "Mahadevan", "Narayanrao", "Pranavanan", "Rameshvara", "Satyananda", "Thirumalan",
+  "Udayananda", "Vatsalendra", "Yashodanan", "Aniruddhan", "Balasundar", "Chandranand", "Devprakash", "Ekadrishta", "Ganapathya", "Hariomprak",
+  "Ishwarnath", "Jayanandha", "Kalkinatha", "Lakshminath", "Manjunatha", "Nagarajan", "Parameswar", "Raghunatha", "Sambashiva", "Tulsidasan",
+  "Ulaganatha", "Venkateshw", "Yugadharma", "Amritanand", "Bhagwanjee", "Chaitanyan", "Divyaprak", "Easwarappa", "Gurudevana", "Hemachandn",
+  "Ilanthiran", "Janardhana", "Kasinathan", "Lalitkumar", "Muralidhar", "Nandakumar", "Praneshwar", "Raviprakash", "Satyavratn", "Trivenidha",
+  "Upendrakum", "Vishwajita", "Yugalendra", "Akhilanand", "Brahmanand", "Chidambarn", "Desikanand", "Eshanandha", "Gnanasekar", "Hemanthraj",
+  "Ishwarchan", "Jagapathir", "Kumaranand", "Lokaprakas", "Mahendrana", "Natarajanm", "Pathanjali", "Ranganatha", "Shrikantan", "Thiruvatch",
+  "Umakantana", "Vaidyanath", "Yogeswaran", "Adityendra", "Bhaskarnat", "Chandrakan", "Devendrana", "Elankumara", "Gopalaswam", "Haribhakti",
+  "Ilamkumar", "Jagadeepan", "Krittivasa", "Lalitbhanu", "Madhavanan", "Narayananm", "Parthibanm", "Ramakumarn", "Sankaranat", "Thirupathi",
+  "Uthamanand", "Vetrivelan", "Yuvanandan", "Aravindhan", "Bhuvaneswa", "Chandralal", "Dharanitha", "Eeshwarana", "Ganeshanan", "Harekrishn",
+  "Ichchhapur", "Jayapradha", "Kanakarajn", "Laxmikanta", "Manickamur", "Nandakisha", "Puranandra", "Ramasubbha", "Saravanana", "Thiruvenka"
+];
 
     function generateIndianName() {
       let tries = 0;
