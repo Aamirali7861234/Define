@@ -24,7 +24,6 @@
       margin: 0;
       transition: background 0.3s ease, color 0.3s ease;
     }
-
     header {
       background: var(--header-bg);
       padding: 10px 16px;
@@ -36,7 +35,6 @@
       top: 0;
       z-index: 2;
     }
-
     .nav-buttons button {
       background: #fff;
       color: #007bff;
@@ -47,28 +45,23 @@
       cursor: pointer;
       font-size: 14px;
     }
-
     .nav-buttons button.active {
       background: #ffc107;
       color: #000;
     }
-
     .toggle {
       font-size: 22px;
       cursor: pointer;
       user-select: none;
       transition: transform 0.4s ease;
     }
-
     .rotate {
       animation: rotateIcon 0.5s ease;
     }
-
     @keyframes rotateIcon {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(180deg); }
     }
-
     .container {
       background: var(--container-bg);
       padding: 20px 15px;
@@ -80,43 +73,26 @@
       z-index: 1;
       text-align: center;
     }
-
     .email-box {
       font-size: 18px;
       margin: 15px 0;
       word-break: break-word;
     }
-
     .slide-out-in {
       animation: slideOutIn 0.4s ease-in-out;
     }
-
     @keyframes slideOutIn {
-      0% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-      50% {
-        transform: translateY(-10px);
-        opacity: 0;
-      }
-      51% {
-        transform: translateY(10px);
-        opacity: 0;
-      }
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
+      0% { transform: translateY(0); opacity: 1; }
+      50% { transform: translateY(-10px); opacity: 0; }
+      51% { transform: translateY(10px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
     }
-
     .button-row {
       display: flex;
       justify-content: center;
       gap: 10px;
       flex-wrap: wrap;
     }
-
     button {
       padding: 10px 16px;
       font-size: 15px;
@@ -127,17 +103,14 @@
       color: #fff;
       transition: background 0.3s ease;
     }
-
     button:hover {
       background: #0056b3;
     }
-
     ul {
       list-style: none;
       padding: 0;
       margin-top: 10px;
     }
-
     li {
       background: #f1f1f1;
       padding: 10px;
@@ -145,11 +118,9 @@
       margin: 6px 0;
       text-align: center;
     }
-
     body.dark li {
       background: #3a3a4f;
     }
-
     footer {
       text-align: center;
       margin: 15px;
@@ -158,22 +129,13 @@
       z-index: 2;
       position: relative;
     }
-
     .hidden {
       display: none;
     }
-
     @media (max-width: 480px) {
-      .container {
-        margin: 10px;
-      }
-      .email-box {
-        font-size: 16px;
-      }
-      button {
-        font-size: 14px;
-        padding: 8px 12px;
-      }
+      .container { margin: 10px; }
+      .email-box { font-size: 16px; }
+      button { font-size: 14px; padding: 8px 12px; }
     }
   </style>
 </head>
@@ -212,11 +174,7 @@
   </audio>
 
   <script>
-    let token = '';
-    let email = '';
-    let lastOtp = '';
-    let interval;
-    let isDark = false;
+    let token = '', email = '', lastOtp = '', interval, isDark = false;
 
     function toggleDarkMode() {
       document.body.classList.toggle('dark');
@@ -236,9 +194,9 @@
 
     async function generateEmail() {
       clearInterval(interval);
+      document.getElementById('emailChangeSound').play();
       const emailBox = document.getElementById('email');
       emailBox.classList.add('slide-out-in');
-      document.getElementById('emailChangeSound').play();
       await new Promise(r => setTimeout(r, 400));
       emailBox.classList.remove('slide-out-in');
 
@@ -285,6 +243,8 @@
           return;
         }
 
+        let foundNewOtp = false;
+
         for (let msg of messages) {
           const full = await fetch(`https://api.mail.tm/messages/${msg.id}`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -292,19 +252,24 @@
           const msgData = await full.json();
           const content = msgData.text || msgData.html || '';
           const otp = extractOtp(content);
+
           if (otp && otp !== lastOtp) {
             lastOtp = otp;
             document.getElementById("notifSound").play();
             saveToHistory(email, otp);
             inboxEl.innerHTML = `<li>${otp}</li>`;
-            clearInterval(interval); // stop refresh after OTP
-            return;
+            clearInterval(interval);
+            foundNewOtp = true;
+            break;
           }
         }
 
-        inboxEl.innerHTML = '<li>Message found, but no OTP.</li>';
-      } catch (e) {
-        console.error(e);
+        if (!foundNewOtp) {
+          inboxEl.innerHTML = lastOtp ? `<li>${lastOtp}</li>` : '<li>Message found, but no OTP.</li>';
+        }
+
+      } catch (err) {
+        console.error(err);
         inboxEl.innerHTML = '<li>Error fetching inbox.</li>';
       }
     }
@@ -324,13 +289,9 @@
     function renderHistory() {
       const historyList = document.getElementById("historyList");
       const history = JSON.parse(localStorage.getItem("emailHistory") || "[]");
-      if (history.length === 0) {
-        historyList.innerHTML = '<li>No history yet.</li>';
-      } else {
-        historyList.innerHTML = history.map(h =>
-          `<li><strong>${h.email}</strong><br>${h.otp}</li>`
-        ).join('');
-      }
+      historyList.innerHTML = history.length === 0
+        ? '<li>No history yet.</li>'
+        : history.map(h => `<li><strong>${h.email}</strong><br>${h.otp}</li>`).join('');
     }
 
     function copyEmail() {
