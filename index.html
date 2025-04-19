@@ -5,16 +5,79 @@
   <title>Number + OTP Merger</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f8;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 20px;
+      padding-top: 90px;
+      padding-bottom: 60px;
+      transition: background 0.5s ease;
     }
+
+    body.light {
+      background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1, #84fab0, #8fd3f4);
+      background-size: 400% 400%;
+      animation: gradientMove 20s ease infinite;
+      color: #000;
+    }
+
+    body.dark {
+      background: linear-gradient(-45deg, #232526, #414345, #283048, #485563, #2b5876, #4e4376);
+      background-size: 400% 400%;
+      animation: gradientMove 20s ease infinite;
+      color: #f5f5f5;
+    }
+
+    @keyframes gradientMove {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header-animate {
+      animation: slideDown 0.8s ease-out forwards;
+    }
+
+    .footer-animate {
+      animation: slideUp 0.8s ease-out forwards;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: linear-gradient(to right, #007bff, #00c6ff);
+      color: white;
+      padding: 10px 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
     .container {
       max-width: 800px;
       margin: auto;
+      padding: 20px;
     }
+
     textarea {
       width: 100%;
       height: 200px;
@@ -24,26 +87,33 @@
       border-radius: 8px;
       margin-bottom: 16px;
       resize: vertical;
-      box-sizing: border-box;
     }
+
     select, button {
       padding: 10px 14px;
       font-size: 16px;
-      margin-right: 10px;
+      margin: 10px 5px;
       border-radius: 6px;
       border: none;
+      cursor: pointer;
+      transition: 0.3s ease;
     }
+
     select {
       border: 1px solid #ccc;
     }
+
     button {
-      background-color: #28a745;
+      background: linear-gradient(45deg, #28a745, #218838);
       color: white;
-      cursor: pointer;
+      background-size: 200% 200%;
+      animation: gradientMove 6s ease infinite;
     }
+
     button:hover {
-      background-color: #218838;
+      transform: scale(1.05);
     }
+
     .result-box {
       background: #fff;
       padding: 15px;
@@ -52,6 +122,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       position: relative;
     }
+
     .result-box textarea {
       background: #f8f8f8;
       font-family: monospace;
@@ -62,54 +133,109 @@
       font-size: 15px;
       resize: vertical;
     }
+
     .copy-btn {
       position: absolute;
       top: 15px;
       right: 15px;
-      background-color: #007bff;
+      background: linear-gradient(45deg, #007bff, #0056b3);
       color: white;
       border: none;
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
     }
+
     .copy-btn:hover {
-      background-color: #0056b3;
+      transform: scale(1.05);
     }
+
     .count {
       font-weight: bold;
       font-size: 16px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      color: #444;
+      margin: 10px 0;
     }
-    #sendAllBtn {
-      margin-top: 20px;
-      background-color: #25D366;
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #333;
+      color: #ccc;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 14px;
     }
-    #sendAllBtn:hover {
-      background-color: #128C7E;
+
+    .theme-toggle {
+      font-size: 22px;
+      cursor: pointer;
+      transition: transform 0.6s ease-in-out;
     }
+
+    .theme-toggle.spin {
+      transform: rotate(360deg);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    .fade-in { animation: fadeIn 0.7s ease forwards; }
+    .scale-in { animation: scaleIn 0.6s ease-out forwards; }
+    .slide-in-left { animation: slideInLeft 0.7s ease-out forwards; }
+    .slide-in-right { animation: slideInRight 0.7s ease-out forwards; }
+    .pop-in { animation: popIn 0.5s ease-out forwards; }
   </style>
 </head>
-<body>
+<body class="light">
+  <header class="header-animate">
+    <div class="header-content">
+      <h3>Number + OTP Merger</h3>
+      <div class="theme-toggle" onclick="toggleTheme()" id="themeIcon">☀️</div>
+    </div>
+  </header>
+
   <div class="container">
-    <h2>Number + OTP Merger</h2>
-    <textarea id="input" placeholder="Paste your data here..."></textarea>
-    <label>Group Size:</label>
-    <select id="chunkSize">
+    <textarea id="input" placeholder="Paste your data here..." class="fade-in"></textarea>
+    <br/>
+    <label class="slide-in-left">Group Size:</label>
+    <select id="chunkSize" class="slide-in-left">
       <option value="1">1</option>
       <option value="4">4</option>
       <option value="8" selected>8</option>
       <option value="10">10</option>
     </select>
-    <button onclick="merge()">Generate</button>
-    <button id="sendAllBtn" onclick="sendAll()">Send All via WhatsApp</button>
-    <div id="resultArea"></div>
+    <button onclick="merge()" class="scale-in">Generate</button>
+    <button onclick="sendAll()" class="scale-in">Send All via WhatsApp</button>
+    <div id="resultArea" class="pop-in"></div>
   </div>
-  <div style="text-align: center; margin-top: 40px; font-size: 14px; color: #777;">
+
+  <footer class="footer-animate">
     &copy; 2024 Aamir Ali. All rights reserved.
-  </div>
+  </footer>
 
   <script>
     let mergedGroups = [];
@@ -156,7 +282,7 @@
         mergedGroups.push(group.join('\n'));
 
         const box = document.createElement("div");
-        box.className = "result-box";
+        box.className = "result-box pop-in";
 
         const ta = document.createElement("textarea");
         ta.rows = group.length;
@@ -184,10 +310,26 @@
         return;
       }
 
-      const allText = mergedGroups.join("\n\n"); // Combine all chunks
+      const allText = mergedGroups.join("\n\n");
       const encoded = encodeURIComponent(allText);
       const url = `https://wa.me/?text=${encoded}`;
       window.open(url, "_blank");
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const icon = document.getElementById("themeIcon");
+
+      icon.classList.add('spin');
+      setTimeout(() => icon.classList.remove('spin'), 600);
+
+      if (body.classList.contains('dark')) {
+        body.classList.replace('dark', 'light');
+        icon.textContent = "☀️";
+      } else {
+        body.classList.replace('light', 'dark');
+        icon.textContent = "🌙";
+      }
     }
   </script>
 </body>
