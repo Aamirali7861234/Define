@@ -232,15 +232,16 @@
     <button onclick="sendAll()" class="scale-in">Send All via WhatsApp</button>
     <div id="resultArea" class="pop-in"></div>
   </div>
-<div id="visitorCount" class="footer-animate" style="text-align:center; font-weight:bold; padding-bottom:10px; margin-bottom:0px"></div>
+
   <footer class="footer-animate">
     &copy; 2024 Aamir Ali. All rights reserved.
   </footer>
+
   <script>
     let mergedGroups = [];
 
     function merge() {
-          const raw = document.getElementById("input").value.trim().split("===");
+      const raw = document.getElementById("input").value.trim().split("===");
       const chunkSize = parseInt(document.getElementById("chunkSize").value);
       let finalList = [];
 
@@ -331,20 +332,5 @@
       }
     }
   </script>
-  <script>
-  // Visitor count logic
-  const VISITOR_KEY = 'visited_once';
-  if (!localStorage.getItem(VISITOR_KEY)) {
-    localStorage.setItem(VISITOR_KEY, 'true');
-    // Call to a counter API or mock increment logic (local example below)
-    let count = localStorage.getItem('visitor_counter') || '0';
-    count = parseInt(count) + 1;
-    localStorage.setItem('visitor_counter', count);
-  }
-
-  // Show visitor count
-  const visitorCount = localStorage.getItem('visitor_counter') || '1';
-  document.getElementById("visitorCount").textContent = `Visitor Count: ${visitorCount}`;
-</script>
 </body>
 </html>
