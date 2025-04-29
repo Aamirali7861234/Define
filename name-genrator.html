@@ -6,81 +6,85 @@
   <title>Unique Indian Name Generator</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right, #f6f8fd, #eaf0f9);
-      color: #222;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to right top, #ffe29f, #ffa99f, #ff719a, #ff449f, #ff2eb2);
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
 
-    .box {
-      background: #ffffff;
-      margin-top: 40px;
-      padding: 30px 25px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-      text-align: center;
-      width: 90%;
-      max-width: 420px;
-      transition: all 0.3s ease;
-    }
+.box {
+  background: linear-gradient(to right, #ffffff, #f2f2f2);
+  margin-top: 40px;
+  padding: 30px 25px;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: 90%;
+  max-width: 420px;
+  transition: all 0.3s ease;
+  border: 2px solid #ff69b4;
+}
 
-    .box:hover {
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
-    }
+.box:hover {
+  box-shadow: 0 15px 35px rgba(255, 105, 180, 0.3);
+  transform: scale(1.02);
+}
 
-    h2 {
-      font-size: 1.7rem;
-      color: #333;
-      margin-bottom: 20px;
-    }
+h2 {
+  font-size: 1.8rem;
+  color: #ff007f;
+  margin-bottom: 20px;
+}
 
-    #name {
-      font-size: 1.3rem;
-      margin: 20px 0;
-      color: #555;
-      word-break: break-word;
-      min-height: 45px;
-    }
+#name {
+  font-size: 1.4rem;
+  margin: 20px 0;
+  color: #3b3b3b;
+  word-break: break-word;
+  min-height: 45px;
+  font-weight: 600;
+}
 
-    .btn-group {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+.btn-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-    .btn {
-      padding: 12px 22px;
-      font-size: 15px;
-      font-weight: 500;
-      background: linear-gradient(to right, #1976d2, #2196f3);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.25s ease;
-    }
+.btn {
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(to right, #ff00cc, #3333ff);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.25s ease;
+}
 
-    .btn:hover {
-      background: linear-gradient(to right, #1565c0, #1e88e5);
-    }
+.btn:hover {
+  background: linear-gradient(to right, #ff3399, #6666ff);
+  transform: scale(1.05);
+}
 
-    .copyright {
-      font-size: 13px;
-      color: #777;
-      margin-top: 15px;
-      text-align: center;
-    }
+.copyright {
+  font-size: 13px;
+  color: #fff;
+  margin-top: 20px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
   </style>
 </head>
 <body>
