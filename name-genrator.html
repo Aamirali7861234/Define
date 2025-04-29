@@ -152,7 +152,7 @@
 
       while (tries < maxTries) {
         let firstName = '';
-        while (firstName.length < 10 || firstName.length > 13) { 
+        while (firstName.length < 8 || firstName.length > 13) { 
           const prefix = firstPrefixes[Math.floor(Math.random() * firstPrefixes.length)];
           const suffix = firstSuffixes[Math.floor(Math.random() * firstSuffixes.length)];
           firstName = prefix + suffix;
