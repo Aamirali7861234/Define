@@ -42,14 +42,14 @@
     // Initialize the counter or check for previous visits using cookies
     let currentCount = parseInt(getCookie("visitor_count") || "0");
 
-    // Check if the user has visited before
+    // Check if the user has visited before (using visitor_counted cookie)
     if (!getCookie("visitor_counted")) {
       // Increment count for new visitor
       currentCount += 1;
 
       // Set the updated count in the cookie
       setCookie("visitor_count", currentCount, 365); // Valid for 1 year
-      setCookie("visitor_counted", "true", 365); // Mark as counted, valid for 1 year
+      setCookie("visitor_counted", "true", 365); // Mark the user as counted, valid for 1 year
     }
 
     // Display the current visitor count
