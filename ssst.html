@@ -1,46 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visitor Counter</title>
   <style>
     body {
       text-align: center;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       padding: 50px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      font-size: 36px;
+      color: #333;
     }
     #count {
-      font-size: 30px;
+      font-size: 40px;
       font-weight: bold;
+      color: #4caf50;
+    }
+    a {
+      color: #000;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
+
   <h1>Welcome to My Website</h1>
-  <p>Visitor: <span id="count">Loading...</span></p>
+  <p>Visitor Count: <span id="count">Loading...</span></p>
 
-  <script>
-    const key = 'aamirali7861234_define';
+  <!-- Visitor Counter from freevisitorcounters.com -->
+  <a href='https://www.free-counters.org/' target="_blank">www.free-Counter.org</a>
+  
+  <!-- First script for counter -->
+  <script type="text/javascript" async src="https://www.freevisitorcounters.com/auth.php?id=293fe77a76985418d8241acc21231f72caa5a5fc"></script>
+  
+  <!-- Second script for displaying counter -->
+  <script type="text/javascript" async src="https://www.freevisitorcounters.com/en/home/counter/1334258/t/5"></script>
 
-    async function updateCount() {
-      try {
-        let response;
-
-        if (!localStorage.getItem('visited_define')) {
-          response = await fetch(`https://api.countapi.xyz/update/${key}/visits/?amount=1`);
-          localStorage.setItem('visited_define', 'true');
-        } else {
-          response = await fetch(`https://api.countapi.xyz/get/${key}/visits/`);
-        }
-
-        const data = await response.json();
-        document.getElementById('count').innerText = data.value;
-      } catch (error) {
-        document.getElementById('count').innerText = 'Error';
-        console.error("Failed to fetch visitor count:", error);
-      }
-    }
-
-    updateCount();
-  </script>
 </body>
 </html>
