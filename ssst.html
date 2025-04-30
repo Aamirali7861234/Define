@@ -24,47 +24,26 @@
 </head>
 <body>
 
-  <h1>Welcome to My Website</h1>
-  <p>Visitor Count: <span id="count">Loading...</span></p>
+  <div id="visitorCounter"></div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+<script>
+  function updateVisitorCount() {
+    let visitorCount = localStorage.getItem('visitorCount');
 
-  <script>
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+    if (visitorCount === null) {
+      visitorCount = 1;
+    } else {
+      visitorCount = parseInt(visitorCount) + 1;
+    }
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    localStorage.setItem('visitorCount', visitorCount);
+    document.getElementById('visitorCounter').textContent = "Visitors: " + visitorCount;
+  }
 
-    // Reference to the counter
-    const countRef = database.ref('visitorCount');
+  // पेज लोड होने पर काउंटर अपडेट करें
+  window.onload = updateVisitorCount;
+</script>
 
-    // Get the current count
-    countRef.get().then((snapshot) => {
-      if (snapshot.exists()) {
-        const count = snapshot.val();
-        document.getElementById('count').innerText = count;
-      } else {
-        document.getElementById('count').innerText = "0";
-      }
-    });
-
-    // Increment the counter every time a new visitor visits
-    countRef.transaction((currentCount) => {
-      return (currentCount || 0) + 1;
-    });
-  </script>
 
 </body>
 </html>
