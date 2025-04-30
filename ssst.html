@@ -4,45 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visitor Counter</title>
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial, sans-serif;
-      padding: 50px;
-      background-color: #f5f5f5;
-    }
-    h1 {
-      font-size: 36px;
-      color: #333;
-    }
-    #count {
-      font-size: 40px;
-      font-weight: bold;
-      color: #4caf50;
-    }
-  </style>
-</head>
-<body>
-
-  <div id="visitorCounter"></div>
+  <body>
+    <div id="visitorCounter"></div>
 
 <script>
   function updateVisitorCount() {
-    let visitorCount = localStorage.getItem('visitorCount');
+    if (sessionStorage.getItem('counted') !== 'true') {
+      let visitorCount = localStorage.getItem('visitorCount');
 
-    if (visitorCount === null) {
-      visitorCount = 1;
-    } else {
-      visitorCount = parseInt(visitorCount) + 1;
+      if (visitorCount === null) {
+        visitorCount = 1;
+      } else {
+        visitorCount = parseInt(visitorCount) + 1;
+      }
+
+      localStorage.setItem('visitorCount', visitorCount);
+      sessionStorage.setItem('counted', 'true');
     }
 
-    localStorage.setItem('visitorCount', visitorCount);
-    document.getElementById('visitorCounter').textContent = "Visitors: " + visitorCount;
+    document.getElementById('visitorCounter').textContent = "शेयर (अनुमानित): " + localStorage.getItem('visitorCount');
   }
 
-  // पेज लोड होने पर काउंटर अपडेट करें
   window.onload = updateVisitorCount;
 </script>
+
+    
+    
 
 
 </body>
