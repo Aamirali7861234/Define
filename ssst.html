@@ -19,22 +19,28 @@
   <p>Visitor: <span id="count">Loading...</span></p>
 
   <script>
-    const countKey = 'aamirali7861234_define'; // Unique to your project
+    const key = 'aamirali7861234_define';
 
-    if (!localStorage.getItem('visited_define')) {
-      fetch(`https://api.countapi.xyz/update/${countKey}/visits/?amount=1`)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('count').innerText = data.value;
-        });
-      localStorage.setItem('visited_define', 'true');
-    } else {
-      fetch(`https://api.countapi.xyz/get/${countKey}/visits/`)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('count').innerText = data.value;
-        });
+    async function updateCount() {
+      try {
+        let response;
+
+        if (!localStorage.getItem('visited_define')) {
+          response = await fetch(`https://api.countapi.xyz/update/${key}/visits/?amount=1`);
+          localStorage.setItem('visited_define', 'true');
+        } else {
+          response = await fetch(`https://api.countapi.xyz/get/${key}/visits/`);
+        }
+
+        const data = await response.json();
+        document.getElementById('count').innerText = data.value;
+      } catch (error) {
+        document.getElementById('count').innerText = 'Error';
+        console.error("Failed to fetch visitor count:", error);
+      }
     }
+
+    updateCount();
   </script>
 </body>
 </html>
