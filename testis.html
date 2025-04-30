@@ -23,23 +23,37 @@
   </div>
 
   <script>
-    // Check if this is the first time the user has visited
-    if (!localStorage.getItem("visitor_counted")) {
-      // If it's the first visit, initialize the counter or set it to a specific number
-      if (!localStorage.getItem("visitor_count")) {
-        localStorage.setItem("visitor_count", 172); // Starting count (you can change this)
-      } else {
-        let currentCount = parseInt(localStorage.getItem("visitor_count"));
-        currentCount += 1; // Increment count for each new visitor
-        localStorage.setItem("visitor_count", currentCount);
-      }
-
-      // Mark this user as counted (so that the same user doesn't get counted again)
-      localStorage.setItem("visitor_counted", "true");
+    // Function to get a cookie by name
+    function getCookie(name) {
+      let matches = document.cookie.match(new RegExp(
+        "(?:^|; )" + name.replace(/([.$?*|{}()[]\/+^])/g, '\\$1') + "=([^;]*)"
+      ));
+      return matches ? decodeURIComponent(matches[1]) : undefined;
     }
 
-    // Get the current visitor count and display it
-    let visitorCount = parseInt(localStorage.getItem("visitor_count"));
+    // Function to set a cookie
+    function setCookie(name, value, days) {
+      let date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); // Expiration time
+      let expires = "expires=" + date.toUTCString();
+      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+
+    // Check if user has visited before using cookies
+    if (!getCookie("visitor_counted")) {
+      // If no cookie, increment the count (starting from 172)
+      let currentCount = parseInt(getCookie("visitor_count") || "172");
+      currentCount += 1;
+
+      // Set the updated visitor count in cookie
+      setCookie("visitor_count", currentCount, 365); // Valid for 1 year
+
+      // Mark the user as counted
+      setCookie("visitor_counted", "true", 365); // Valid for 1 year
+    }
+
+    // Get the current visitor count from cookie and display
+    let visitorCount = parseInt(getCookie("visitor_count"));
     document.getElementById("visitor-count").textContent = visitorCount.toString().padStart(4, '0');
   </script>
 </body>
