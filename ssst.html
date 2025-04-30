@@ -20,13 +20,6 @@
       font-weight: bold;
       color: #4caf50;
     }
-    a {
-      color: #000;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
@@ -34,14 +27,44 @@
   <h1>Welcome to My Website</h1>
   <p>Visitor Count: <span id="count">Loading...</span></p>
 
-  <!-- Visitor Counter from freevisitorcounters.com -->
-  <a href='https://www.free-counters.org/' target="_blank">www.free-Counter.org</a>
-  
-  <!-- First script for counter -->
-  <script type="text/javascript" async src="https://www.freevisitorcounters.com/auth.php?id=293fe77a76985418d8241acc21231f72caa5a5fc"></script>
-  
-  <!-- Second script for displaying counter -->
-  <script type="text/javascript" async src="https://www.freevisitorcounters.com/en/home/counter/1334258/t/5"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Reference to the counter
+    const countRef = database.ref('visitorCount');
+
+    // Get the current count
+    countRef.get().then((snapshot) => {
+      if (snapshot.exists()) {
+        const count = snapshot.val();
+        document.getElementById('count').innerText = count;
+      } else {
+        document.getElementById('count').innerText = "0";
+      }
+    });
+
+    // Increment the counter every time a new visitor visits
+    countRef.transaction((currentCount) => {
+      return (currentCount || 0) + 1;
+    });
+  </script>
 
 </body>
 </html>
