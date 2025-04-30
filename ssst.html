@@ -1,16 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visitor Counter</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       text-align: center;
+      font-family: Arial;
       padding: 50px;
     }
-    .counter {
+    #count {
       font-size: 30px;
       font-weight: bold;
     }
@@ -18,57 +16,25 @@
 </head>
 <body>
   <h1>Welcome to My Website</h1>
-  <div class="counter">
-    Visitor: <span id="visitor-count">Loading...</span>
-  </div>
+  <p>Visitor: <span id="count">Loading...</span></p>
 
   <script>
-    // Function to get a cookie by name
-    function getCookie(name) {
-      let matches = document.cookie.match(new RegExp(
-        "(?:^|; )" + name.replace(/([.$?*|{}()[]\/+^])/g, '\\$1') + "=([^;]*)"
-      ));
-      return matches ? decodeURIComponent(matches[1]) : undefined;
-    }
+    const countKey = 'aamirali7861234_define'; // Unique to your project
 
-    // Function to set a cookie
-    function setCookie(name, value, days) {
-      let date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); // Expiration time
-      let expires = "expires=" + date.toUTCString();
-      document.cookie = name + "=" + value + ";" + expires + ";path=/";
-    }
-
-    // Debugging: Check cookies before anything else
-    console.log("Current cookies: ", document.cookie);
-
-    // Initialize the counter or check for previous visits using cookies
-    let currentCount = parseInt(getCookie("visitor_count") || "0");
-
-    // Debugging: Print currentCount
-    console.log("Initial visitor count: ", currentCount);
-
-    // Check if the user has visited before (using visitor_counted cookie)
-    if (!getCookie("visitor_counted")) {
-      // Increment count for new visitor
-      currentCount += 1;
-
-      // Debugging: Print incremented count
-      console.log("Incremented visitor count: ", currentCount);
-
-      // Set the updated count in the cookie
-      setCookie("visitor_count", currentCount, 365); // Valid for 1 year
-      setCookie("visitor_counted", "true", 365); // Mark the user as counted, valid for 1 year
+    if (!localStorage.getItem('visited_define')) {
+      fetch(`https://api.countapi.xyz/update/${countKey}/visits/?amount=1`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('count').innerText = data.value;
+        });
+      localStorage.setItem('visited_define', 'true');
     } else {
-      // Debugging: If user has visited before
-      console.log("User has already been counted.");
+      fetch(`https://api.countapi.xyz/get/${countKey}/visits/`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('count').innerText = data.value;
+        });
     }
-
-    // Display the current visitor count
-    document.getElementById("visitor-count").textContent = currentCount;
-
-    // Debugging: Print final visitor count in the page
-    console.log("Final visitor count displayed: ", currentCount);
   </script>
 </body>
 </html>
