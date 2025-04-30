@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Counter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    .counter {
+      font-size: 30px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to My Website</h1>
+  <div class="counter">
+    Visitor: <span id="visitor-count">Loading...</span>
+  </div>
+
+  <script>
+    // Function to get a cookie by name
+    function getCookie(name) {
+      let matches = document.cookie.match(new RegExp(
+        "(?:^|; )" + name.replace(/([.$?*|{}()[]\/+^])/g, '\\$1') + "=([^;]*)"
+      ));
+      return matches ? decodeURIComponent(matches[1]) : undefined;
+    }
+
+    // Function to set a cookie
+    function setCookie(name, value, days) {
+      let date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); // Expiration time
+      let expires = "expires=" + date.toUTCString();
+      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+
+    // Initialize the counter or check for previous visits using cookies
+    let currentCount = parseInt(getCookie("visitor_count") || "0");
+
+    // Check if the user has visited before
+    if (!getCookie("visitor_counted")) {
+      // Increment count for new visitor
+      currentCount += 1;
+
+      // Set the updated count in the cookie
+      setCookie("visitor_count", currentCount, 365); // Valid for 1 year
+      setCookie("visitor_counted", "true", 365); // Mark as counted, valid for 1 year
+    }
+
+    // Display the current visitor count
+    document.getElementById("visitor-count").textContent = currentCount.toString().padStart(4, '0');
+  </script>
+</body>
+</html>
