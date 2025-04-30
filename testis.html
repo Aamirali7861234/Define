@@ -39,22 +39,21 @@
       document.cookie = name + "=" + value + ";" + expires + ";path=/";
     }
 
-    // Check if user has visited before using cookies
+    // Initialize the counter or check for previous visits using cookies
+    let currentCount = parseInt(getCookie("visitor_count") || "0");
+
+    // Check if the user has visited before
     if (!getCookie("visitor_counted")) {
-      // If no cookie, initialize the count to 0
-      let currentCount = parseInt(getCookie("visitor_count") || "0");
-      currentCount += 1; // Increment count for each new user
+      // Increment count for new visitor
+      currentCount += 1;
 
-      // Set the updated visitor count in cookie
+      // Set the updated count in the cookie
       setCookie("visitor_count", currentCount, 365); // Valid for 1 year
-
-      // Mark the user as counted
-      setCookie("visitor_counted", "true", 365); // Valid for 1 year
+      setCookie("visitor_counted", "true", 365); // Mark as counted, valid for 1 year
     }
 
-    // Get the current visitor count from cookie and display
-    let visitorCount = parseInt(getCookie("visitor_count"));
-    document.getElementById("visitor-count").textContent = visitorCount.toString().padStart(4, '0');
+    // Display the current visitor count
+    document.getElementById("visitor-count").textContent = currentCount.toString().padStart(4, '0');
   </script>
 </body>
 </html>
