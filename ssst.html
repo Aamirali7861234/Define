@@ -5,28 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visitor Counter</title>
   <body>
-    <div id="visitorCounter"></div>
-
-<script>
-  function updateVisitorCount() {
-    if (sessionStorage.getItem('counted') !== 'true') {
-      let visitorCount = localStorage.getItem('visitorCount');
-
-      if (visitorCount === null) {
-        visitorCount = 1;
-      } else {
-        visitorCount = parseInt(visitorCount) + 1;
-      }
-
-      localStorage.setItem('visitorCount', visitorCount);
-      sessionStorage.setItem('counted', 'true');
-    }
-
-    document.getElementById('visitorCounter').textContent = "शेयर (अनुमानित): " + localStorage.getItem('visitorCount');
-  }
-
-  window.onload = updateVisitorCount;
-</script>
+<!-- Badge Code - Do Not Change The Code -->
+<a class="hitCounter" href="https://visitorshitcounter.com/" target="_blank" title="Hit counter" data-name="a6c2e9268ce6e384e1e1187d39423f0d|1|internal|1|#0099cc|#f5f5f5|small|s-hit">Hit Counter</a><script>document.write("<script type='text/javascript' src='https://visitorshitcounter.com/js/hitCounter.js?v="+Date.now()+"'><\/script>");</script>
+<!-- Badge Code End Here -->
 
     
     
