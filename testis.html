@@ -41,9 +41,9 @@
 
     // Check if user has visited before using cookies
     if (!getCookie("visitor_counted")) {
-      // If no cookie, increment the count (starting from 172)
-      let currentCount = parseInt(getCookie("visitor_count") || "172");
-      currentCount += 1;
+      // If no cookie, initialize the count to 0
+      let currentCount = parseInt(getCookie("visitor_count") || "0");
+      currentCount += 1; // Increment count for each new user
 
       // Set the updated visitor count in cookie
       setCookie("visitor_count", currentCount, 365); // Valid for 1 year
