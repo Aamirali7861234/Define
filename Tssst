@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadyAccs API - Buy Number & Check Balance</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
+    input, button { padding: 10px; margin: 5px 0; }
+    pre { background: #eee; padding: 10px; border-radius: 5px; white-space: pre-wrap; }
+    h2 { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h1>ReadyAccs API - Buy Number & Check Balance</h1>
+
+  <h2>1. Check Balance</h2>
+  <button onclick="checkBalance()">Check Balance</button>
+  <pre id="balance">Waiting...</pre>
+
+  <h2>2. Order New Number (India)</h2>
+  <input id="service" placeholder="Enter service name (e.g., vk, tg, fb)" />
+  <button onclick="orderNumber()">Order Number</button>
+  <pre id="order">Waiting...</pre>
+
+  <script>
+    const access = "4228a01beefaac1bb7f1fc3b7412a422";
+    const apiBase = "https://readyacc.store/api/api.php";
+
+    // Function to check available balance
+    function checkBalance() {
+      const url = `${apiBase}?access=${access}&type=getAvailableBalance`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => document.getElementById('balance').textContent = JSON.stringify(data, null, 2))
+        .catch(err => document.getElementById('balance').textContent = "Failed to fetch: " + err.message);
+    }
+
+    // Function to order new number
+    function orderNumber() {
+      const service = document.getElementById('service').value.trim();
+      if (!service) return alert('Enter a service name.');
+      
+      const url = `${apiBase}?access=${access}&type=getNewNumber&service=${service}`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => document.getElementById('order').textContent = JSON.stringify(data, null, 2))
+        .catch(err => document.getElementById('order').textContent = "Failed to fetch: " + err.message);
+    }
+  </script>
+</body>
+</html>
