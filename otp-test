@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ReadyAccs OTP Tool</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+    select, button { width: 100%; padding: 10px; margin-top: 10px; }
+    #log { white-space: pre-line; background: #f1f1f1; padding: 15px; margin-top: 20px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h2>ReadyAccs OTP Receiver</h2>
+
+  <label>Select Service:</label>
+  <select id="serviceSelect"><option>Loading services...</option></select>
+
+  <button onclick="getNumber()">Get Number</button>
+
+  <div id="log">Waiting for action...</div>
+
+  <script>
+    const access = "4228a01beefaac1bb7f1fc3b7412a422"; // Inbuilt access key
+    let activationId = null;
+    let intervalId = null;
+
+    async function loadServices() {
+      const select = document.getElementById("serviceSelect");
+      select.innerHTML = "<option>Loading services...</option>";
+
+      try {
+        const res = await fetch(`https://readyacc.store/api/api.php?access=${access}&type=getServiceList`);
+        const text = await res.text();
+        let data = JSON.parse(text);
+
+        select.innerHTML = "";
+        for (const [key, name] of Object.entries(data)) {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = `${name} (${key})`;
+          select.appendChild(option);
+        }
+      } catch (err) {
+        select.innerHTML = "<option>Error loading services</option>";
+      }
+    }
+
+    async function getNumber() {
+      const service = document.getElementById("serviceSelect").value;
+      const log = document.getElementById("log");
+      if (!service) return alert("Select a service first.");
+
+      log.textContent = "Requesting number...";
+
+      try {
+        const res = await fetch(`https://readyacc.store/api/api.php?access=${access}&type=getNewNumber&service=${service}`);
+        const text = await res.text();
+
+        if (text.startsWith("ACCESS_NUMBER")) {
+          const parts = text.split(":");
+          activationId = parts[1];
+          const number = parts[2];
+          log.textContent = `Number received:\nNumber: ${number}\nActivation ID: ${activationId}\n\nWaiting for OTP...`;
+
+          startOtpCheck(); // Start auto fetch
+        } else {
+          log.textContent = `Error getting number:\n${text}`;
+        }
+      } catch (err) {
+        log.textContent = "Failed to get number.";
+      }
+    }
+
+    function startOtpCheck() {
+      const log = document.getElementById("log");
+      if (intervalId) clearInterval(intervalId);
+
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${activationId}`);
+          const text = await res.text();
+
+          if (text.startsWith("STATUS_OK:")) {
+            const otp = text.split(":")[1];
+            log.textContent += `\n\nOTP Received:\n${otp}`;
+            clearInterval(intervalId);
+          } else if (text.includes("STATUS_WAIT_CODE")) {
+            log.textContent += ".";
+          } else {
+            log.textContent += `\n\nServer says:\n${text}`;
+          }
+        } catch (err) {
+          log.textContent += "\n\nError fetching OTP.";
+        }
+      }, 5000); // Check every 5 seconds
+    }
+
+    loadServices(); // Load services on page load
+  </script>
+</body>
+</html>
