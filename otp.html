@@ -4,31 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Multi OTP Tool</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: sans-serif;
-      background: #f4f4f4;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
       padding: 20px;
-    }
-    .box {
-      background: #fff;
-      padding: 15px;
-      margin: 15px auto;
-      border-radius: 10px;
-      max-width: 600px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h2 {
       text-align: center;
+      color: #333;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     label, select, input, button {
       display: block;
       width: 100%;
-      margin-top: 10px;
+      margin-top: 12px;
+      font-size: 15px;
     }
     input, select {
       padding: 10px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid #ccc;
     }
     button {
@@ -36,9 +45,10 @@
       color: white;
       padding: 12px;
       border: none;
-      border-radius: 6px;
-      margin-top: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
       cursor: pointer;
+      font-size: 16px;
     }
     button:hover {
       background: #218838;
@@ -46,7 +56,7 @@
     #loading {
       display: none;
       text-align: center;
-      margin: 10px 0;
+      margin-top: 10px;
     }
     .spinner {
       border: 4px solid #ccc;
@@ -57,57 +67,80 @@
       margin: auto;
       animation: spin 1s linear infinite;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .history {
-      background: #eee;
-      padding: 10px;
+      background: #f9f9f9;
+      padding: 12px;
       white-space: pre-wrap;
       font-size: 14px;
-      border-radius: 6px;
+      border-radius: 8px;
+      color: #333;
     }
-    .cancel-btn {
-      background: red;
-      color: white;
-      padding: 4px 8px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
+ .cancel-btn {
+  background: #dc3545;
+  color: white;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: auto;
+  margin-top: 2px;
+}
+  .number-clickable {
+  cursor: pointer;
+  color: blue;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+    .number-clickable:hover {
+      text-decoration: underline;
     }
-    .number-clickable {
-      cursor: pointer;
-      color: blue;
-    }
-    .countdown {
-      font-weight: bold;
-      color: orange;
-    }
-    .history-line {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 5px;
-    }
+  .countdown {
+  font-weight: bold;
+  color: orange;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+ .history-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: nowrap;
+}
     .serial {
       font-weight: bold;
+      min-width: 20px;
+    }
+    input[type="text"]::placeholder {
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-  <h2>OTP Multi Number Tool</h2>
+  <h2><i class="fas fa-key"></i> OTP Multi Number Tool</h2>
+
   <div class="box">
-    <strong>Balance:</strong> <span id="balance">Loading...</span>
+    <strong><i class="fas fa-wallet"></i> Balance:</strong>
+    <span id="balance">Loading...</span>
   </div>
+
   <div class="box">
     <input type="text" id="search" placeholder="Search service..." oninput="filterServices()">
     <select id="services"><option>Loading...</option></select>
-    <label>How many numbers?</label>
+    <label><i class="fas fa-hashtag"></i> How many numbers?</label>
     <input type="number" id="count" value="1" min="1" max="10" />
-    <button onclick="getNumbers()">Get Numbers</button>
+    <button onclick="getNumbers()"><i class="fas fa-phone"></i> Get Numbers</button>
     <div id="loading"><div class="spinner"></div></div>
   </div>
-  <div class="box history" id="history">History will appear here...</div>
+
+  <div class="box history" id="history">
+    <i class="fas fa-history"></i> History will appear here...
+  </div>
 
   <script>
     const access = "4228a01beefaac1bb7f1fc3b7412a422";
