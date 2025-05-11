@@ -1,153 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mines Game Prediction Tool</title>
+  <title>ReadyAccs OTP Tool</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 10px;
-    }
-    .controls {
-      margin-bottom: 20px;
-    }
-    .controls input {
-      padding: 8px;
-      margin: 5px;
-      width: 140px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(5, 60px);
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .box {
-      width: 60px;
-      height: 60px;
-      background: #fff;
-      border: 2px solid #ccc;
-      cursor: pointer;
-      font-size: 20px;
-      font-weight: bold;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: all 0.3s ease;
-    }
-    .box.bomb {
-      background: #ff4d4d;
-      color: white;
-    }
-    .box.safe {
-      background: #4caf50;
-      color: white;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      background: #007bff;
-      border: none;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-
-    @media(max-width: 500px) {
-      .grid {
-        grid-template-columns: repeat(5, 50px);
-        gap: 8px;
-      }
-      .box {
-        width: 50px;
-        height: 50px;
-        font-size: 16px;
-      }
-      .controls input {
-        width: 100px;
-        font-size: 14px;
-      }
-    }
+    body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+    select, button { width: 100%; padding: 10px; margin-top: 10px; }
+    #log { white-space: pre-line; background: #f1f1f1; padding: 15px; margin-top: 20px; border-radius: 6px; }
   </style>
 </head>
 <body>
-  <h2>Mines Game Prediction Tool</h2>
+  <h2>ReadyAccs OTP Receiver</h2>
 
-  <div class="controls">
-    <input type="number" id="bombCount" placeholder="No. of Bombs" min="1" max="24" />
-    <input type="number" id="openCount" placeholder="Open how many boxes" min="1" max="25" />
-    <button onclick="predictSafe()">Predict Safe Boxes</button>
-  </div>
+  <label>Select Service:</label>
+  <select id="serviceSelect"><option>Loading services...</option></select>
 
-  <div class="grid" id="grid"></div>
+  <button onclick="getNumber()">Get Number</button>
+
+  <div id="log">Waiting for action...</div>
 
   <script>
-    const grid = document.getElementById("grid");
-    const totalBoxes = 25;
-    const boxes = [];
+    const access = "4228a01beefaac1bb7f1fc3b7412a422"; // Inbuilt access key
+    let activationId = null;
+    let intervalId = null;
 
-    // Create 5x5 grid
-    for (let i = 0; i < totalBoxes; i++) {
-      const div = document.createElement("div");
-      div.classList.add("box");
-      div.textContent = i + 1;
-      div.dataset.index = i;
-      grid.appendChild(div);
-      boxes.push(div);
-    }
+    async function loadServices() {
+      const select = document.getElementById("serviceSelect");
+      select.innerHTML = "<option>Loading services...</option>";
 
-    function clearGrid() {
-      boxes.forEach(box => box.classList.remove("bomb", "safe"));
-    }
+      try {
+        const res = await fetch(`https://readyacc.store/api/api.php?access=${access}&type=getServiceList`);
+        const text = await res.text();
+        let data = JSON.parse(text);
 
-    function setRandomBombs(bombCount) {
-      const indexes = [...Array(totalBoxes).keys()];
-      const shuffled = indexes.sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, bombCount);
-      selected.forEach(i => boxes[i].classList.add("bomb"));
-      return selected;
-    }
-
-    function predictSafe() {
-      clearGrid();
-
-      const bombCount = parseInt(document.getElementById("bombCount").value);
-      const openCount = parseInt(document.getElementById("openCount").value);
-
-      if (isNaN(bombCount) || bombCount < 1 || bombCount >= totalBoxes) {
-        alert("Enter valid bomb count (1 to 24)");
-        return;
+        select.innerHTML = "";
+        for (const [key, name] of Object.entries(data)) {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = `${name} (${key})`;
+          select.appendChild(option);
+        }
+      } catch (err) {
+        select.innerHTML = "<option>Error loading services</option>";
       }
-      if (isNaN(openCount) || openCount < 1 || openCount > totalBoxes) {
-        alert("Enter valid open box count (1 to 25)");
-        return;
-      }
-
-      const bombIndexes = setRandomBombs(bombCount);
-
-      const safeIndexes = boxes
-        .map((_, i) => i)
-        .filter(i => !bombIndexes.includes(i));
-
-      if (openCount > safeIndexes.length) {
-        alert("Not enough safe boxes available!");
-        return;
-      }
-
-      const shuffled = safeIndexes.sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, openCount);
-      selected.forEach(i => boxes[i].classList.add("safe"));
     }
+
+    async function getNumber() {
+      const service = document.getElementById("serviceSelect").value;
+      const log = document.getElementById("log");
+      if (!service) return alert("Select a service first.");
+
+      log.textContent = "Requesting number...";
+
+      try {
+        const res = await fetch(`https://readyacc.store/api/api.php?access=${access}&type=getNewNumber&service=${service}`);
+        const text = await res.text();
+
+        if (text.startsWith("ACCESS_NUMBER")) {
+          const parts = text.split(":");
+          activationId = parts[1];
+          const number = parts[2];
+          log.textContent = `Number received:\nNumber: ${number}\nActivation ID: ${activationId}\n\nWaiting for OTP...`;
+
+          startOtpCheck(); // Start auto fetch
+        } else {
+          log.textContent = `Error getting number:\n${text}`;
+        }
+      } catch (err) {
+        log.textContent = "Failed to get number.";
+      }
+    }
+
+    function startOtpCheck() {
+      const log = document.getElementById("log");
+      if (intervalId) clearInterval(intervalId);
+
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${activationId}`);
+          const text = await res.text();
+
+          if (text.startsWith("STATUS_OK:")) {
+            const otp = text.split(":")[1];
+            log.textContent += `\n\nOTP Received:\n${otp}`;
+            clearInterval(intervalId);
+          } else if (text.includes("STATUS_WAIT_CODE")) {
+            log.textContent += ".";
+          } else {
+            log.textContent += `\n\nServer says:\n${text}`;
+          }
+        } catch (err) {
+          log.textContent += "\n\nError fetching OTP.";
+        }
+      }, 5000); // Check every 5 seconds
+    }
+
+    loadServices(); // Load services on page load
   </script>
 </body>
 </html>
