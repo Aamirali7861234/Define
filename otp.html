@@ -76,42 +76,42 @@
       border-radius: 8px;
       color: #333;
     }
- .cancel-btn {
-  background: #dc3545;
-  color: white;
-  padding: 4px 8px;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  width: auto;
-  margin-top: 2px;
-}
-  .number-clickable {
-  cursor: pointer;
-  color: blue;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
+    .cancel-btn {
+      background: #dc3545;
+      color: white;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      width: auto;
+      margin-top: 2px;
+    }
+    .number-clickable {
+      cursor: pointer;
+      color: blue;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
     .number-clickable:hover {
       text-decoration: underline;
     }
-  .countdown {
-  font-weight: bold;
-  color: orange;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
- .history-line {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
-  flex-wrap: nowrap;
-}
+    .countdown {
+      font-weight: bold;
+      color: orange;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .history-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: nowrap;
+    }
     .serial {
       font-weight: bold;
       min-width: 20px;
@@ -135,6 +135,7 @@
     <label><i class="fas fa-hashtag"></i> How many numbers?</label>
     <input type="number" id="count" value="1" min="1" max="10" />
     <button onclick="getNumbers()"><i class="fas fa-phone"></i> Get Numbers</button>
+    <button onclick="scrollToHistory()"><i class="fas fa-history"></i> View History</button>
     <div id="loading"><div class="spinner"></div></div>
   </div>
 
@@ -144,208 +145,199 @@
 
   <script>
     const access = "4228a01beefaac1bb7f1fc3b7412a422";
-    const proxy = "https://api.codetabs.com/v1/proxy?quest=";
-    let historyLog = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-    let activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
+const proxy = "https://api.codetabs.com/v1/proxy?quest=";
+let activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
 
-    const fetchProxy = async (url) => {
-      const res = await fetch(proxy + encodeURIComponent(url));
-      return await res.text();
-    };
+const fetchProxy = async (url) => {
+  const res = await fetch(proxy + encodeURIComponent(url));
+  return await res.text();
+};
 
-    const updateStorage = () => {
-      localStorage.setItem("activeNumbers", JSON.stringify(activeNumbers));
-    };
+const updateStorage = () => {
+  localStorage.setItem("activeNumbers", JSON.stringify(activeNumbers));
+};
 
-    const updateHistoryBox = () => {
-      const waiting = [];
-      const completed = [];
-      let index = 1;
-      Object.entries(activeNumbers).forEach(([id, entry]) => {
-        if (entry.otp) {
-          completed.push(`${index++}. ${entry.display} => OTP: ${entry.otp}`);
-        } else {
-          waiting.push(`
-            <div class="history-line">
-              <span class="serial">${index++}.</span>
-              <span class="number-clickable" onclick="navigator.clipboard.writeText('${entry.num.replace(/^91/, "")}')">
-                ${entry.num.replace(/^91/, "")}
-              </span>
-              <span class="countdown" id="cd_${id}">${entry.timeLeft}s</span>
-              <button id="cancel_${id}" class="cancel-btn">Cancel</button>
-            </div>
-          `);
+const updateHistoryBox = () => {
+  const waiting = [];
+  const completed = [];
+  let index = 1;
+  Object.entries(activeNumbers).forEach(([id, entry]) => {
+    if (entry.otp) {
+      completed.push(`${index++}. ${entry.display} => OTP: ${entry.otp}`);
+    } else {
+      waiting.push(`
+        <div class="history-line">
+          <span class="serial">${index++}.</span>
+          <span class="number-clickable" onclick="navigator.clipboard.writeText('${entry.num.replace(/^91/, "")}')">
+            ${entry.num.replace(/^91/, "")}
+          </span>
+          <span class="countdown" id="cd_${id}">${entry.timeLeft}s</span>
+          <button id="cancel_${id}" class="cancel-btn">Cancel</button>
+        </div>
+      `);
+    }
+  });
+  document.getElementById("history").innerHTML = waiting.concat(completed).join('<br>');
+};
+
+const cancelNumber = async (id, skipHistory = false) => {
+  const entry = activeNumbers[id];
+  if (!entry) return;
+  try {
+    await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`);
+    if (!skipHistory) {
+      // Do not save history here
+    }
+  } catch {}
+  delete activeNumbers[id];
+  updateStorage();
+  updateHistoryBox();
+};
+
+const startCountdown = (id) => {
+  const countdown = setInterval(() => {
+    if (!activeNumbers[id]) return clearInterval(countdown);
+    activeNumbers[id].timeLeft -= 1;
+    const el = document.getElementById(`cd_${id}`);
+    if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
+    if (activeNumbers[id].timeLeft <= 0) {
+      clearInterval(countdown);
+      cancelNumber(id, true);
+    }
+    updateStorage();
+  }, 1000);
+};
+
+const createNumberEntry = (i, id, num) => {
+  const stripped = num.replace(/^91/, "");
+  activeNumbers[id] = {
+    num,
+    display: `<span class="number-clickable" onclick="navigator.clipboard.writeText('${stripped}')">${stripped}</span>`,
+    otp: null,
+    timeLeft: 120
+  };
+
+  updateStorage();
+  updateHistoryBox();
+
+  setTimeout(() => {
+    const btn = document.getElementById(`cancel_${id}`);
+    if (btn) btn.onclick = () => cancelNumber(id);
+  }, 100);
+
+  startCountdown(id);
+};
+
+const getNumbers = async () => {
+  const service = document.getElementById("services").value;
+  const count = parseInt(document.getElementById("count").value) || 1;
+  document.getElementById("loading").style.display = "block";
+
+  for (let i = 0; i < count; i++) {
+    try {
+      const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNewNumber&service=${service}`);
+      if (!res.startsWith("ACCESS_NUMBER")) {
+        // History save is skipped here
+        continue;
+      }
+      const [, id, num] = res.split(":");
+      createNumberEntry(i, id, num);
+
+      let tries = 0;
+      const poll = setInterval(async () => {
+        tries++;
+        if (!activeNumbers[id]) return clearInterval(poll);
+        const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
+        if (status.startsWith("STATUS_OK:")) {
+          clearInterval(poll);
+          const otp = status.split(":")[1];
+          activeNumbers[id].otp = otp;
+          updateStorage();
+          updateHistoryBox();
+          // History save is skipped here
         }
-      });
-      document.getElementById("history").innerHTML = [...waiting, ...completed, ...historyLog].join('<br>');
-    };
-
-    const saveHistory = (line) => {
-      historyLog.push(line);
-      localStorage.setItem("otpHistory", JSON.stringify(historyLog));
-    };
-
-    const cancelNumber = async (id, skipHistory = false) => {
-      const entry = activeNumbers[id];
-      if (!entry) return;
-      try {
-        await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`);
-        if (!skipHistory) saveHistory(`${entry.display} (Cancelled)`);
-      } catch {}
-      delete activeNumbers[id];
-      updateStorage();
-      updateHistoryBox();
-    };
-
-    const startCountdown = (id) => {
-      const countdown = setInterval(() => {
-        if (!activeNumbers[id]) return clearInterval(countdown);
-        activeNumbers[id].timeLeft -= 1;
-        const el = document.getElementById(`cd_${id}`);
-        if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
-        if (activeNumbers[id].timeLeft <= 0) {
-          clearInterval(countdown);
+        if (tries >= 24) {
+          clearInterval(poll);
           cancelNumber(id, true);
         }
+      }, 5000);
+
+    } catch (err) {
+      // History save is skipped here
+    }
+  }
+  document.getElementById("loading").style.display = "none";
+};
+
+const loadBalance = async () => {
+  try {
+    const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getAvailableBalance`);
+    const bal = res.split(":")[1] || "0";
+    document.getElementById("balance").textContent = bal;
+  } catch {
+    document.getElementById("balance").textContent = "Error";
+  }
+};
+
+const loadServices = async () => {
+  try {
+    const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getServiceList`);
+    const data = JSON.parse(res);
+    const sel = document.getElementById("services");
+    sel.innerHTML = "";
+    Object.entries(data).forEach(([code, name]) => {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = `${name} (${code})`;
+      sel.appendChild(opt);
+    });
+  } catch {
+    document.getElementById("services").innerHTML = "<option>Error</option>";
+  }
+};
+
+const restoreActiveNumbers = () => {
+  Object.entries(activeNumbers).forEach(([id, entry]) => {
+    updateHistoryBox();
+
+    setTimeout(() => {
+      const btn = document.getElementById(`cancel_${id}`);
+      if (btn) btn.onclick = () => cancelNumber(id);
+    }, 100);
+
+    startCountdown(id);
+
+    let tries = 0;
+    const poll = setInterval(async () => {
+      tries++;
+      if (!activeNumbers[id]) return clearInterval(poll);
+      const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
+      if (status.startsWith("STATUS_OK:")) {
+        clearInterval(poll);
+        const otp = status.split(":")[1];
+        activeNumbers[id].otp = otp;
         updateStorage();
-      }, 1000);
-    };
-
-    const createNumberEntry = (i, id, num) => {
-      const stripped = num.replace(/^91/, "");
-      activeNumbers[id] = {
-        num,
-        display: `<span class="number-clickable" onclick="navigator.clipboard.writeText('${stripped}')">${stripped}</span>`,
-        otp: null,
-        timeLeft: 120
-      };
-
-      updateStorage();
-      updateHistoryBox();
-
-      setTimeout(() => {
-        const btn = document.getElementById(`cancel_${id}`);
-        if (btn) btn.onclick = () => cancelNumber(id);
-      }, 100);
-
-      startCountdown(id);
-    };
-
-    const getNumbers = async () => {
-      const service = document.getElementById("services").value;
-      const count = parseInt(document.getElementById("count").value) || 1;
-      document.getElementById("loading").style.display = "block";
-
-      for (let i = 0; i < count; i++) {
-        try {
-          const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNewNumber&service=${service}`);
-          if (!res.startsWith("ACCESS_NUMBER")) {
-            saveHistory(`FAILED to get number (${i + 1}): ${res}`);
-            continue;
-          }
-          const [, id, num] = res.split(":");
-          createNumberEntry(i, id, num);
-
-          let tries = 0;
-          const poll = setInterval(async () => {
-            tries++;
-            if (!activeNumbers[id]) return clearInterval(poll);
-            const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
-            if (status.startsWith("STATUS_OK:")) {
-              clearInterval(poll);
-              const otp = status.split(":")[1];
-              activeNumbers[id].otp = otp;
-              updateStorage();
-              updateHistoryBox();
-              saveHistory(`${activeNumbers[id].display} => OTP: ${otp}`);
-            }
-            if (tries >= 24) {
-              clearInterval(poll);
-              cancelNumber(id, true);
-            }
-          }, 5000);
-
-        } catch (err) {
-          saveHistory(`Error getting number (${i + 1}): ${err.message}`);
-        }
-      }
-      document.getElementById("loading").style.display = "none";
-    };
-
-    const loadBalance = async () => {
-      try {
-        const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getAvailableBalance`);
-        const bal = res.split(":")[1] || "0";
-        document.getElementById("balance").textContent = bal;
-      } catch {
-        document.getElementById("balance").textContent = "Error";
-      }
-    };
-
-    const loadServices = async () => {
-      try {
-        const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getServiceList`);
-        const data = JSON.parse(res);
-        const sel = document.getElementById("services");
-        sel.innerHTML = "";
-        Object.entries(data).forEach(([code, name]) => {
-          const opt = document.createElement("option");
-          opt.value = code;
-          opt.textContent = `${name} (${code})`;
-          sel.appendChild(opt);
-        });
-      } catch {
-        document.getElementById("services").innerHTML = "<option>Error</option>";
-      }
-    };
-
-    const filterServices = () => {
-      const query = document.getElementById("search").value.toLowerCase();
-      const options = document.querySelectorAll("#services option");
-      options.forEach(opt => {
-        const visible = opt.textContent.toLowerCase().includes(query);
-        opt.style.display = visible ? "" : "none";
-        if (visible) opt.selected = true;
-      });
-    };
-
-    const restoreActiveNumbers = () => {
-      Object.entries(activeNumbers).forEach(([id, entry]) => {
         updateHistoryBox();
+        // History save is skipped here
+      }
+      if (tries >= 24) {
+        clearInterval(poll);
+        cancelNumber(id, true);
+      }
+    }, 5000);
+  });
+};
 
-        setTimeout(() => {
-          const btn = document.getElementById(`cancel_${id}`);
-          if (btn) btn.onclick = () => cancelNumber(id);
-        }, 100);
+window.onload = () => {
+  loadBalance();
+  loadServices();
+  updateHistoryBox();
+  restoreActiveNumbers();
+};
 
-        startCountdown(id);
-
-        let tries = 0;
-        const poll = setInterval(async () => {
-          tries++;
-          if (!activeNumbers[id]) return clearInterval(poll);
-          const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
-          if (status.startsWith("STATUS_OK:")) {
-            clearInterval(poll);
-            const otp = status.split(":")[1];
-            activeNumbers[id].otp = otp;
-            updateStorage();
-            updateHistoryBox();
-            saveHistory(`${activeNumbers[id].display} => OTP: ${otp}`);
-          }
-          if (tries >= 24) {
-            clearInterval(poll);
-            cancelNumber(id, true);
-          }
-        }, 5000);
-      });
-    };
-
-    window.onload = () => {
-      loadBalance();
-      loadServices();
-      updateHistoryBox();
-      restoreActiveNumbers();
+    // Scroll to history section when clicked
+    const scrollToHistory = () => {
+      document.getElementById("history").scrollIntoView({ behavior: "smooth" });
     };
   </script>
 </body>
