@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OTP History</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      margin: 0;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .danger { background: #dc3545; }
+    .danger:hover { background: #c82333; }
+    .gray { background: #6c757d; }
+    .gray:hover { background: #5a6268; }
+
+    .entry {
+      background: white;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .entry span {
+      display: block;
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>OTP History</h2>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search app name..." oninput="renderHistory()"/>
+    <select id="filterDate" onchange="renderHistory()">
+      <option value="">All Dates</option>
+      <option value="today">Today</option>
+      <option value="yesterday">Yesterday</option>
+    </select>
+    <button onclick="exportHistory()">Export</button>
+    <button onclick="clearHistory()" class="danger">Clear</button>
+    <button onclick="window.location.href='index.html'" class="gray">Back</button>
+  </div>
+
+  <div id="historyContainer"></div>
+
+  <script>
+    const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+
+    const isToday = (d) => {
+      const today = new Date();
+      return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+    };
+
+    const isYesterday = (d) => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth() && d.getFullYear() === yesterday.getFullYear();
+    };
+
+    function renderHistory() {
+      const container = document.getElementById("historyContainer");
+      const search = document.getElementById("search").value.toLowerCase();
+      const filterDate = document.getElementById("filterDate").value;
+
+      container.innerHTML = "";
+
+      allHistory
+        .filter(line => {
+          if (search && !line.toLowerCase().includes(search)) return false;
+
+          const match = line.match(/👦(.*?)👦/);
+          if (!match) return true;
+
+          const date = new Date(match[1]);
+          if (filterDate === "today" && !isToday(date)) return false;
+          if (filterDate === "yesterday" && !isYesterday(date)) return false;
+
+          return true;
+        })
+        .reverse()
+        .forEach(line => {
+          const div = document.createElement("div");
+          div.className = "entry";
+          div.innerHTML = <span>${line}</span>;
+          container.appendChild(div);
+        });
+    }
+
+    function exportHistory() {
+      const blob = new Blob([JSON.stringify(allHistory, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "otp_history.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearHistory() {
+      if (confirm("Clear all history?")) {
+        localStorage.removeItem("otpHistory");
+        location.reload();
+      }
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>
