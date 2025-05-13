@@ -135,13 +135,14 @@
     <label><i class="fas fa-hashtag"></i> How many numbers?</label>
     <input type="number" id="count" value="1" min="1" max="10" />
     <button onclick="getNumbers()"><i class="fas fa-phone"></i> Get Numbers</button>
-    <button onclick="scrollToHistory()">history.html<i class="fas fa-history"></i> View History</button>
+<button onclick="redirectToHistory()"><i class="fas fa-history"></i> View History</button>
     <div id="loading"><div class="spinner"></div></div>
   </div>
 
   <div class="box history" id="history">
     <i class="fas fa-history"></i> History will appear here...
   </div>
+
 
   <script>
     const access = "4228a01beefaac1bb7f1fc3b7412a422";
@@ -334,6 +335,12 @@ window.onload = () => {
   updateHistoryBox();
   restoreActiveNumbers();
 };
+
+
+
+ const redirectToHistory = () => {
+    window.location.href = "history.html";
+  };
 
     // Scroll to history section when clicked
     const scrollToHistory = () => {
