@@ -346,6 +346,26 @@ window.onload = () => {
     const scrollToHistory = () => {
       document.getElementById("history").scrollIntoView({ behavior: "smooth" });
     };
+    const filterServices = () => {
+  const input = document.getElementById("search").value.toLowerCase();
+  const select = document.getElementById("services");
+  let firstMatchFound = false;
+
+  for (let i = 0; i < select.options.length; i++) {
+    const option = select.options[i];
+    const text = option.textContent.toLowerCase();
+
+    if (text.includes(input)) {
+      option.style.display = "block";
+      if (!firstMatchFound) {
+        option.selected = true;
+        firstMatchFound = true;
+      }
+    } else {
+      option.style.display = "none";
+    }
+  }
+};
   </script>
 </body>
 </html>
