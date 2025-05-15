@@ -367,13 +367,13 @@
   }
 
   function showHistoryAlert() {
-    const history = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-    if (history.length === 0) {
-      alert("No OTP history yet.");
-      return;
-    }
-    alert(history.join("\n\n"));
+  const history = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+  if (history.length === 0) {
+    alert("No OTP history yet.");
+    return;
   }
+  alert(history.join("\n\n"));
+}
 
   window.onload = () => {
     loadBalance();
