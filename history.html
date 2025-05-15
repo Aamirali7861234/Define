@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OTP History</title>
   <style>
     body {
@@ -48,10 +48,9 @@
       margin-bottom: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .entry span {
-      display: block;
-      margin: 2px 0;
+      font-family: monospace;
+      white-space: nowrap;
+      overflow-x: auto;
     }
   </style>
 </head>
@@ -59,7 +58,7 @@
   <h2>OTP History</h2>
 
   <div class="controls">
-    <input type="text" id="search" placeholder="Search app name..." oninput="renderHistory()"/>
+    <input type="text" id="search" placeholder="Search service name or number..." oninput="renderHistory()" />
     <select id="filterDate" onchange="renderHistory()">
       <option value="">All Dates</option>
       <option value="today">Today</option>
@@ -73,23 +72,12 @@
   <div id="historyContainer"></div>
 
   <script>
-    const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-
-    const isToday = (d) => {
-      const today = new Date();
-      return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
-    };
-
-    const isYesterday = (d) => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      return d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth() && d.getFullYear() === yesterday.getFullYear();
-    };
-
     function renderHistory() {
       const container = document.getElementById("historyContainer");
       const search = document.getElementById("search").value.toLowerCase();
       const filterDate = document.getElementById("filterDate").value;
+
+      const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
 
       container.innerHTML = "";
 
@@ -97,25 +85,35 @@
         .filter(line => {
           if (search && !line.toLowerCase().includes(search)) return false;
 
-          const match = line.match(/👦(.*?)👦/);
-          if (!match) return true;
+          const parts = line.split(" | ");
+          if (parts.length < 4) return false; // skip malformed entries
 
-          const date = new Date(match[1]);
-          if (filterDate === "today" && !isToday(date)) return false;
-          if (filterDate === "yesterday" && !isYesterday(date)) return false;
-
+          const date = new Date(parts[1]);
+          if (filterDate === "today") {
+            const now = new Date();
+            if (!(date.getDate() === now.getDate() &&
+                  date.getMonth() === now.getMonth() &&
+                  date.getFullYear() === now.getFullYear())) return false;
+          } else if (filterDate === "yesterday") {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (!(date.getDate() === yesterday.getDate() &&
+                  date.getMonth() === yesterday.getMonth() &&
+                  date.getFullYear() === yesterday.getFullYear())) return false;
+          }
           return true;
         })
         .reverse()
         .forEach(line => {
           const div = document.createElement("div");
           div.className = "entry";
-          div.innerHTML = <span>${line}</span>;
+          div.textContent = line;
           container.appendChild(div);
         });
     }
 
     function exportHistory() {
+      const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
       const blob = new Blob([JSON.stringify(allHistory, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -128,7 +126,7 @@
     function clearHistory() {
       if (confirm("Clear all history?")) {
         localStorage.removeItem("otpHistory");
-        location.reload();
+        renderHistory();
       }
     }
 
