@@ -5,47 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OTP History</title>
   <style>
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #f5f7fa;
-      padding: 20px;
-      margin: 0;
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    .controls {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-      justify-content: center;
+      flex-direction: column;
     }
-    input, select, button {
-      padding: 10px;
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OTP History</title>
-  <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f7fa;
+      flex: 1;
+    }
+    main {
+      flex: 1;
       padding: 20px;
-      margin: 0;
     }
     h2 {
       text-align: center;
       color: #333;
+      margin-bottom: 5px;
     }
     #totalCount {
       text-align: center;
       color: #666;
-      margin-top: -10px;
+      margin-top: 0;
       margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 500;
     }
     .controls {
       display: flex;
@@ -59,65 +46,91 @@
       font-size: 14px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-family: 'Segoe UI', sans-serif;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus, button:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 3px #007bff;
     }
     button {
       cursor: pointer;
       background: #007bff;
       color: white;
       border: none;
+      transition: background-color 0.2s ease;
     }
     button:hover {
       background: #0056b3;
     }
-    .danger { background: #dc3545; }
-    .danger:hover { background: #c82333; }
-    .gray { background: #6c757d; }
-    .gray:hover { background: #5a6268; }
+    .danger {
+      background: #dc3545;
+    }
+    .danger:hover {
+      background: #c82333;
+    }
+    .gray {
+      background: #6c757d;
+    }
+    .gray:hover {
+      background: #5a6268;
+    }
+
+    #historyContainer {
+      max-width: 800px;
+      margin: 0 auto;
+    }
 
     .entry {
       background: white;
-      padding: 12px;
+      padding: 12px 16px;
       margin-bottom: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       font-family: monospace;
       white-space: nowrap;
       overflow-x: auto;
-      position: relative;
-    }
-    .entry button {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 4px;
       cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
     }
-    .entry button:hover {
-      background: #c82333;
+    .entry:hover {
+      background-color: #e6f0ff;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px 10px;
+      font-size: 13px;
+      color: #777;
+      background: #f1f1f1;
     }
   </style>
 </head>
 <body>
-  <h2>OTP History</h2>
-  <p id="totalCount"></p>
+  <main>
+    <h2>OTP History</h2>
+    <p id="totalCount"></p>
 
-  <div class="controls">
-    <input type="text" id="search" placeholder="Search service name or number..." oninput="renderHistory()" />
-    <select id="filterDate" onchange="renderHistory()">
-      <option value="">All Dates</option>
-      <option value="today">Today</option>
-      <option value="yesterday">Yesterday</option>
-    </select>
-    <button onclick="exportHistory()">Export</button>
-    <button onclick="clearHistory()" class="danger">Clear</button>
-    <button onclick="window.location.href='otp.html'" class="gray">Back</button>
-  </div>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search service name or number..." oninput="renderHistory()" />
+      <select id="filterDate" onchange="renderHistory()">
+        <option value="">All Dates</option>
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+      </select>
+      <button onclick="exportHistory()">Export</button>
+      <button onclick="clearHistory()" class="danger">Clear</button>
+      <button onclick="window.location.href='otp.html'" class="gray">Back</button>
+    </div>
 
-  <div id="historyContainer"></div>
+    <div id="historyContainer"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 OTP Tool. All rights reserved.
+  </footer>
 
   <script>
     function renderHistory() {
@@ -155,7 +168,6 @@
         div.className = "entry";
         div.textContent = line;
 
-        // Copy on click (avoid if clicked on button)
         div.onclick = (e) => {
           if (e.target.tagName !== "BUTTON") {
             navigator.clipboard.writeText(line);
@@ -164,17 +176,6 @@
           }
         };
 
-        // Add delete button
-        const btn = document.createElement("button");
-        btn.textContent = "Delete";
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          const updated = allHistory.filter(l => l !== line);
-          localStorage.setItem("otpHistory", JSON.stringify(updated));
-          renderHistory();
-        };
-
-        div.appendChild(btn);
         container.appendChild(div);
       });
 
