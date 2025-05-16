@@ -24,6 +24,38 @@
     }
     input, select, button {
       padding: 10px;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OTP History</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      margin: 0;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    #totalCount {
+      text-align: center;
+      color: #666;
+      margin-top: -10px;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    input, select, button {
+      padding: 10px;
       font-size: 14px;
       border-radius: 6px;
       border: 1px solid #ccc;
@@ -51,11 +83,27 @@
       font-family: monospace;
       white-space: nowrap;
       overflow-x: auto;
+      position: relative;
+    }
+    .entry button {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .entry button:hover {
+      background: #c82333;
     }
   </style>
 </head>
 <body>
   <h2>OTP History</h2>
+  <p id="totalCount"></p>
 
   <div class="controls">
     <input type="text" id="search" placeholder="Search service name or number..." oninput="renderHistory()" />
@@ -76,40 +124,62 @@
       const container = document.getElementById("historyContainer");
       const search = document.getElementById("search").value.toLowerCase();
       const filterDate = document.getElementById("filterDate").value;
-
       const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
 
       container.innerHTML = "";
 
-      allHistory
-        .filter(line => {
-          if (search && !line.toLowerCase().includes(search)) return false;
+      const filtered = allHistory.filter(line => {
+        if (search && !line.toLowerCase().includes(search)) return false;
+        const parts = line.split(" | ");
+        if (parts.length < 4) return false;
 
-          const parts = line.split(" | ");
-          if (parts.length < 4) return false; // skip malformed entries
+        const date = new Date(parts[1]);
+        const now = new Date();
 
-          const date = new Date(parts[1]);
-          if (filterDate === "today") {
-            const now = new Date();
-            if (!(date.getDate() === now.getDate() &&
-                  date.getMonth() === now.getMonth() &&
-                  date.getFullYear() === now.getFullYear())) return false;
-          } else if (filterDate === "yesterday") {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (!(date.getDate() === yesterday.getDate() &&
-                  date.getMonth() === yesterday.getMonth() &&
-                  date.getFullYear() === yesterday.getFullYear())) return false;
+        if (filterDate === "today") {
+          if (!(date.getDate() === now.getDate() &&
+                date.getMonth() === now.getMonth() &&
+                date.getFullYear() === now.getFullYear())) return false;
+        } else if (filterDate === "yesterday") {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          if (!(date.getDate() === yesterday.getDate() &&
+                date.getMonth() === yesterday.getMonth() &&
+                date.getFullYear() === yesterday.getFullYear())) return false;
+        }
+        return true;
+      }).reverse();
+
+      filtered.forEach(line => {
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.textContent = line;
+
+        // Copy on click (avoid if clicked on button)
+        div.onclick = (e) => {
+          if (e.target.tagName !== "BUTTON") {
+            navigator.clipboard.writeText(line);
+            div.style.background = "#d1ffd1";
+            setTimeout(() => div.style.background = "white", 500);
           }
-          return true;
-        })
-        .reverse()
-        .forEach(line => {
-          const div = document.createElement("div");
-          div.className = "entry";
-          div.textContent = line;
-          container.appendChild(div);
-        });
+        };
+
+        // Add delete button
+        const btn = document.createElement("button");
+        btn.textContent = "Delete";
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const updated = allHistory.filter(l => l !== line);
+          localStorage.setItem("otpHistory", JSON.stringify(updated));
+          renderHistory();
+        };
+
+        div.appendChild(btn);
+        container.appendChild(div);
+      });
+
+      document.getElementById("totalCount").textContent =
+        `Showing ${filtered.length} entr${filtered.length === 1 ? 'y' : 'ies'}`;
     }
 
     function exportHistory() {
