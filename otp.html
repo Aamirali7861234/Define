@@ -180,27 +180,27 @@
   }
 
   function updateHistoryBox() {
-    const waiting = [];
-    const completed = [];
-    let index = 1;
-    Object.entries(activeNumbers).forEach(([id, entry]) => {
-      if (entry.otp) {
-        completed.push(`${index++}. ${entry.display} => OTP: ${entry.otp}`);
-      } else {
-        waiting.push(`
-          <div class="history-line">
-            <span class="serial">${index++}.</span>
-            <span class="number-clickable" onclick="navigator.clipboard.writeText('${entry.num.replace(/^91/, "")}')">
-              ${entry.num.replace(/^91/, "")}
-            </span>
-            <span class="countdown" id="cd_${id}">${entry.timeLeft}s</span>
-            <button id="cancel_${id}" class="cancel-btn">Cancel</button>
-          </div>
-        `);
-      }
-    });
-    document.getElementById("history").innerHTML = waiting.concat(completed).join('<br>');
-  }
+  const waiting = [];
+  let index = 1;
+  Object.entries(activeNumbers).forEach(([id, entry]) => {
+    if (!entry.otp) { // sirf wo jinke OTP nahi aaye
+      waiting.push(`
+        <div class="history-line">
+          <span class="serial">${index++}.</span>
+          <span class="number-clickable" onclick="navigator.clipboard.writeText('${entry.num.replace(/^91/, "")}')">
+            ${entry.num.replace(/^91/, "")}
+          </span>
+          <span class="countdown" id="cd_${id}">${entry.timeLeft}s</span>
+          <button id="cancel_${id}" class="cancel-btn">Cancel</button>
+        </div>
+      `);
+    } else {
+      // Agar OTP aa gaya to activeNumbers me toh rahe, 
+      // lekin yaha dikhane ki zarurat nahi
+    }
+  });
+  document.getElementById("history").innerHTML = waiting.join('<br>'); // sirf waiting numbers dikhayein
+}
 
 async function cancelNumber(id, skipHistory = false) {
   const entry = activeNumbers[id];
