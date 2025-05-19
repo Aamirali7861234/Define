@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shaadi Gift Register</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 20px; }
+    h1 { text-align: center; color: #8B0000; }
+    .container { max-width: 600px; margin: auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    input, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #8B0000; color: white; cursor: pointer; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+
+<h1>Shaadi Gift Register</h1>
+<div class="container">
+  <input type="text" id="name" placeholder="Name">
+  <input type="text" id="address" placeholder="Address">
+  <input type="text" id="gift" placeholder="Gift">
+  <input type="number" id="amount" placeholder="Amount (if any)">
+  <button onclick="addOrUpdateEntry()">Save Entry</button>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Sr.</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Gift</th>
+        <th>Amount</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+  </table>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script>
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAB97Cq42hHsoYoEdOvWdvUv9YaDgwAS_4",
+    authDomain: "sadi-gift-notes.firebaseapp.com",
+    projectId: "sadi-gift-notes",
+    storageBucket: "sadi-gift-notes.appspot.com",
+    messagingSenderId: "687307161452",
+    appId: "1:687307161452:web:aa6ced3892dfbf4373bd49",
+    measurementId: "G-88H87ML45H"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let entries = [];
+
+  function addOrUpdateEntry() {
+    const name = document.getElementById('name').value;
+    const address = document.getElementById('address').value;
+    const gift = document.getElementById('gift').value;
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+
+    if (!name || !gift) {
+      alert("Name and Gift are required!");
+      return;
+    }
+
+    const newEntry = { name, address, gift, amount };
+
+    entries.push(newEntry);
+
+    db.collection("entries").add(newEntry)
+      .then(() => {
+        alert("Entry saved successfully!");
+        clearForm();
+        fetchEntries();
+      })
+      .catch((error) => {
+        console.error("Error adding entry: ", error);
+      });
+  }
+
+  function clearForm() {
+    document.getElementById('name').value = '';
+    document.getElementById('address').value = '';
+    document.getElementById('gift').value = '';
+    document.getElementById('amount').value = '';
+  }
+
+  function fetchEntries() {
+    db.collection("entries").get().then((querySnapshot) => {
+      entries = [];
+      querySnapshot.forEach((doc) => {
+        entries.push({ id: doc.id, ...doc.data() });
+      });
+      renderList();
+    });
+  }
+
+  function renderList() {
+    const tbody = document.getElementById("dataTable");
+    tbody.innerHTML = '';
+    entries.forEach((entry, index) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${entry.name}</td>
+          <td>${entry.address}</td>
+          <td>${entry.gift}</td>
+          <td>₹${entry.amount}</td>
+          <td><button onclick="deleteEntry('${entry.id}')">Delete</button></td>
+        </tr>`;
+    });
+  }
+
+  function deleteEntry(id) {
+    if (confirm("Are you sure you want to delete this entry?")) {
+      db.collection("entries").doc(id).delete()
+        .then(() => {
+          alert("Entry deleted!");
+          fetchEntries();
+        })
+        .catch((error) => {
+          console.error("Error deleting entry: ", error);
+        });
+    }
+  }
+
+  // Fetch entries on page load
+  window.onload = fetchEntries;
+</script>
+
+</body>
+</html>
