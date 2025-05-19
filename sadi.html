@@ -5,134 +5,229 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shaadi Gift Register</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 20px; }
-    h1 { text-align: center; color: #8B0000; }
-    .container { max-width: 600px; margin: auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    input, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
-    button { background-color: #8B0000; color: white; cursor: pointer; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #fff8f2; margin: 0; padding: 0; }
+    h1 { text-align: center; color: #8B0000; font-size: 1.8rem; margin: 15px 0; }
+    .container { max-width: 900px; margin: auto; padding: 15px; }
+    .form, .search { background: #ffffff; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); text-align: center; }
+    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
+    .main-button, .export-button {
+      width: 100%; padding: 14px; font-size: 1.1rem; font-weight: 600; color: white;
+      background: linear-gradient(to right, #c0392b, #e74c3c); border: none;
+      border-radius: 10px; margin-top: 10px; cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+    .main-button:hover, .export-button:hover {
+      background: linear-gradient(to right, #b02a1a, #c0392b); transform: scale(1.02);
+    }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; }
+    th { background-color: #8B0000; color: white; position: sticky; top: 0; z-index: 1; }
+    .total-amount { font-weight: bold; background: #f7f7f7; }
+    .row-clickable { cursor: pointer; }
+    .row-clickable:hover { background: #f0f0f0; }
+    .action-row { display: none; background: #fdf7f2; }
+    .action-buttons { display: flex; justify-content: center; gap: 10px; padding: 10px 0; }
+    .action-buttons button {
+      padding: 8px 14px; font-size: 0.9rem; border: none;
+      border-radius: 6px; color: white; cursor: pointer;
+    }
+    .edit-btn { background: #2980b9; }
+    .delete-btn { background: #c0392b; }
+    @media (max-width: 600px) {
+      input { font-size: 0.95rem; }
+      th, td { font-size: 0.9rem; }
+    }
   </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAB97Cq42hHsoYoEdOvWdvUv9YaDgwAS_4",
+      authDomain: "sadi-gift-notes.firebaseapp.com",
+      projectId: "sadi-gift-notes",
+      storageBucket: "sadi-gift-notes.appspot.com",
+      messagingSenderId: "687307161452",
+      appId: "1:687307161452:web:aa6ced3892dfbf4373bd49",
+      measurementId: "G-88H87ML45H"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
 <body>
+  <h1>Shaadi Gift Register</h1>
+  <div class="container">
+    <div class="form">
+      <input type="text" id="name" placeholder="Name" />
+      <input type="text" id="address" placeholder="Address" />
+      <input type="text" id="gift" placeholder="Gift Item" />
+      <input type="number" id="amount" placeholder="Amount (if any)" />
+      <button class="main-button" onclick="addOrUpdateEntry()" id="formBtn">Save Entry</button>
+    </div>
 
-<h1>Shaadi Gift Register</h1>
-<div class="container">
-  <input type="text" id="name" placeholder="Name">
-  <input type="text" id="address" placeholder="Address">
-  <input type="text" id="gift" placeholder="Gift">
-  <input type="number" id="amount" placeholder="Amount (if any)">
-  <button onclick="addOrUpdateEntry()">Save Entry</button>
-  
-  <table>
-    <thead>
-      <tr>
-        <th>Sr.</th>
-        <th>Name</th>
-        <th>Address</th>
-        <th>Gift</th>
-        <th>Amount</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="dataTable"></tbody>
-  </table>
-</div>
+    <div class="search">
+      <input type="text" id="search" placeholder="Search by Name, Address or Gift" oninput="renderList()" />
+      <button class="export-button" onclick="exportToExcel()">Export to Excel</button>
+    </div>
 
-<!-- Firebase v8 Scripts -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Sr.</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Gift</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody id="dataTable"></tbody>
+        <tfoot>
+          <tr class="total-amount">
+            <td colspan="4">Total Amount</td>
+            <td id="totalAmount">₹0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 
-<script>
-  // Firebase configuration (keep yours here)
-  const firebaseConfig = {
-    apiKey: "AIzaSyAB97Cq42hHsoYoEdOvWdvUv9YaDgwAS_4",
-    authDomain: "sadi-gift-notes.firebaseapp.com",
-    projectId: "sadi-gift-notes",
-    storageBucket: "sadi-gift-notes.appspot.com",
-    messagingSenderId: "687307161452",
-    appId: "1:687307161452:web:aa6ced3892dfbf4373bd49",
-    measurementId: "G-88H87ML45H"
-  };
+  <script>
+    let entries = [];
+    let editIndex = -1;
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    function addOrUpdateEntry() {
+      const name = document.getElementById('name').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const gift = document.getElementById('gift').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value.trim()) || 0;
 
-  let entries = [];
+      if (!name || !gift) {
+        alert('Name and Gift are required!');
+        return;
+      }
 
-  function addOrUpdateEntry() {
-    const name = document.getElementById('name').value;
-    const address = document.getElementById('address').value;
-    const gift = document.getElementById('gift').value;
-    const amount = parseFloat(document.getElementById('amount').value) || 0;
+      const entry = { name, address, gift, amount };
 
-    if (!name || !gift) {
-      alert("Name and Gift are required!");
-      return;
-    }
-
-    const newEntry = { name, address, gift, amount };
-
-    db.collection("entries").add(newEntry)
-      .then(() => {
-        alert("Entry saved successfully!");
-        clearForm();
-        fetchEntries();
-      })
-      .catch((error) => {
-        console.error("Error adding entry: ", error);
-      });
-  }
-
-  function clearForm() {
-    document.getElementById('name').value = '';
-    document.getElementById('address').value = '';
-    document.getElementById('gift').value = '';
-    document.getElementById('amount').value = '';
-  }
-
-  function fetchEntries() {
-    db.collection("entries").get().then((querySnapshot) => {
-      entries = [];
-      querySnapshot.forEach((doc) => {
-        entries.push({ id: doc.id, ...doc.data() });
-      });
-      renderList();
-    });
-  }
-
-  function renderList() {
-    const tbody = document.getElementById("dataTable");
-    tbody.innerHTML = '';
-    entries.forEach((entry, index) => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${entry.name}</td>
-          <td>${entry.address}</td>
-          <td>${entry.gift}</td>
-          <td>₹${entry.amount}</td>
-          <td><button onclick="deleteEntry('${entry.id}')">Delete</button></td>
-        </tr>`;
-    });
-  }
-
-  function deleteEntry(id) {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      db.collection("entries").doc(id).delete()
-        .then(() => {
-          alert("Entry deleted!");
-          fetchEntries();
-        })
-        .catch((error) => {
-          console.error("Error deleting entry: ", error);
+      if (editIndex === -1) {
+        db.collection("giftEntries").add(entry).then(() => {
+          clearForm();
+          renderList();
         });
+      } else {
+        const id = entries[editIndex].id;
+        db.collection("giftEntries").doc(id).set(entry).then(() => {
+          editIndex = -1;
+          document.getElementById('formBtn').innerText = 'Save Entry';
+          clearForm();
+          renderList();
+        });
+      }
     }
-  }
 
-  window.onload = fetchEntries;
-</script>
+    function clearForm() {
+      document.getElementById('name').value = '';
+      document.getElementById('address').value = '';
+      document.getElementById('gift').value = '';
+      document.getElementById('amount').value = '';
+    }
 
+    function renderList() {
+      const tbody = document.getElementById('dataTable');
+      const search = document.getElementById('search').value.toLowerCase();
+      tbody.innerHTML = '';
+      let total = 0;
+
+      db.collection("giftEntries").get().then(snapshot => {
+        entries = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          entries.push({ ...data, id: doc.id });
+        });
+
+        entries
+          .map((e, i) => ({ ...e, index: i }))
+          .filter(e =>
+            e.name.toLowerCase().includes(search) ||
+            e.address.toLowerCase().includes(search) ||
+            e.gift.toLowerCase().includes(search)
+          )
+          .forEach((e, i) => {
+            total += parseFloat(e.amount || 0);
+
+            const dataRow = document.createElement('tr');
+            dataRow.className = 'row-clickable';
+            dataRow.onclick = () => toggleActions(e.index);
+            dataRow.innerHTML = `
+              <td>${i + 1}</td>
+              <td>${e.name}</td>
+              <td>${e.address}</td>
+              <td>${e.gift}</td>
+              <td>₹${e.amount || 0}</td>
+            `;
+
+            const actionRow = document.createElement('tr');
+            actionRow.className = 'action-row';
+            actionRow.id = `actionRow-${e.index}`;
+            actionRow.innerHTML = `
+              <td colspan="5">
+                <div class="action-buttons">
+                  <button class="edit-btn" onclick="event.stopPropagation(); editEntry(${e.index})">Edit</button>
+                  <button class="delete-btn" onclick="event.stopPropagation(); deleteEntry(${e.index})">Delete</button>
+                </div>
+              </td>
+            `;
+
+            tbody.appendChild(dataRow);
+            tbody.appendChild(actionRow);
+          });
+
+        document.getElementById('totalAmount').innerText = `₹${total.toFixed(2)}`;
+      });
+    }
+
+    function toggleActions(index) {
+      const actionRow = document.getElementById(`actionRow-${index}`);
+      actionRow.style.display = actionRow.style.display === 'none' || actionRow.style.display === '' ? 'table-row' : 'none';
+    }
+
+    function editEntry(index) {
+      const entry = entries[index];
+      document.getElementById('name').value = entry.name;
+      document.getElementById('address').value = entry.address;
+      document.getElementById('gift').value = entry.gift;
+      document.getElementById('amount').value = entry.amount;
+      editIndex = index;
+      document.getElementById('formBtn').innerText = 'Update Entry';
+    }
+
+    function deleteEntry(index) {
+      const id = entries[index].id;
+      if (confirm('Are you sure you want to delete this entry?')) {
+        db.collection("giftEntries").doc(id).delete().then(() => {
+          renderList();
+        });
+      }
+    }
+
+    function exportToExcel() {
+      let csv = 'Sr.,Name,Address,Gift,Amount\n';
+      entries.forEach((e, i) => {
+        csv += `${i + 1},"${e.name}","${e.address}","${e.gift}",${e.amount}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "Shaadi-Gift-List.csv";
+      link.click();
+    }
+
+    renderList();
+  </script>
 </body>
 </html>
