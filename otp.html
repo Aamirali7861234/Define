@@ -202,16 +202,27 @@
     document.getElementById("history").innerHTML = waiting.concat(completed).join('<br>');
   }
 
-  async function cancelNumber(id, skipHistory = false) {
-    const entry = activeNumbers[id];
-    if (!entry) return;
-    try {
-      await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`);
-    } catch {}
-    delete activeNumbers[id];
-    updateStorage();
-    updateHistoryBox();
+async function cancelNumber(id, skipHistory = false) {
+  const entry = activeNumbers[id];
+  if (!entry) return;
+
+  try {
+    const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`);
+    console.log("Cancel API response:", res);
+
+    if (res.includes("ACCESS_CANCEL") || res.includes("ACCESS_CANCEL_ALREADY")) {
+      delete activeNumbers[id];
+      updateStorage();
+      updateHistoryBox();
+      console.log("Calling loadBalance() after cancel...");
+      setTimeout(loadBalance, 2000);  // 2 second delay for balance update
+    } else {
+      console.warn("Cancel failed:", res);
+    }
+  } catch (err) {
+    console.error("Cancel error:", err);
   }
+};
 
   function startCountdown(id) {
     const countdown = setInterval(() => {
@@ -249,45 +260,48 @@
   }
 
   async function getNumbers() {
-    const service = document.getElementById("services").value;
-    const count = parseInt(document.getElementById("count").value) || 1;
-    document.getElementById("loading").style.display = "block";
+  const service = document.getElementById("services").value;
+  const count = parseInt(document.getElementById("count").value) || 1;
+  document.getElementById("loading").style.display = "block";
 
-    for (let i = 0; i < count; i++) {
-      try {
-        const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNewNumber&service=${service}`);
-        if (!res.startsWith("ACCESS_NUMBER")) {
-          alert("Error getting number, try again.");
-          continue;
-        }
-        const [, id, num] = res.split(":");
-        createNumberEntry(i, id, num);
-
-        let tries = 0;
-        const poll = setInterval(async () => {
-          tries++;
-          if (!activeNumbers[id]) return clearInterval(poll);
-          const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
-          if (status.startsWith("STATUS_OK:")) {
-            clearInterval(poll);
-            const otp = status.split(":")[1];
-            activeNumbers[id].otp = otp;
-            updateStorage();
-            updateHistoryBox();
-            saveToHistory(service, activeNumbers[id].num, otp);
-          }
-          if (tries >= 24) { // 2 min timeout
-            clearInterval(poll);
-            cancelNumber(id, true);
-          }
-        }, 5000);
-
-      } catch {
-        alert("Error fetching number. Please try again.");
+  for (let i = 0; i < count; i++) {
+    try {
+      const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNewNumber&service=${service}`);
+      if (!res.startsWith("ACCESS_NUMBER")) {
+        console.warn("Error getting number:", res); // Alert hata diya
+        continue;
       }
+      const [, id, num] = res.split(":");
+      createNumberEntry(i, id, num);
+
+      // Balance ko turant refresh karo
+      loadBalance();
+
+      let tries = 0;
+      const poll = setInterval(async () => {
+        tries++;
+        if (!activeNumbers[id]) return clearInterval(poll);
+        const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
+        if (status.startsWith("STATUS_OK:")) {
+          clearInterval(poll);
+          const otp = status.split(":")[1];
+          activeNumbers[id].otp = otp;
+          updateStorage();
+          updateHistoryBox();
+          saveToHistory(service, activeNumbers[id].num, otp);
+        }
+        if (tries >= 24) {
+          clearInterval(poll);
+          cancelNumber(id, true);
+        }
+      }, 5000);
+    } catch (err) {
+      console.error("Fetch error:", err); // Alert hata diya
     }
-    document.getElementById("loading").style.display = "none";
   }
+
+  document.getElementById("loading").style.display = "none";
+};
 
   async function loadBalance() {
     try {
