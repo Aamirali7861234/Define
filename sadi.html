@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shaadi Gift Register</title>
   <style>
     body { font-family: Arial, sans-serif; background-color: #f8f8f8; margin: 0; padding: 20px; }
@@ -40,11 +39,12 @@
   </table>
 </div>
 
-<!-- Firebase SDK -->
+<!-- Firebase v8 Scripts -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
 <script>
-  // Firebase configuration
+  // Firebase configuration (keep yours here)
   const firebaseConfig = {
     apiKey: "AIzaSyAB97Cq42hHsoYoEdOvWdvUv9YaDgwAS_4",
     authDomain: "sadi-gift-notes.firebaseapp.com",
@@ -56,7 +56,7 @@
   };
 
   // Initialize Firebase
-  const app = firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
   let entries = [];
@@ -73,8 +73,6 @@
     }
 
     const newEntry = { name, address, gift, amount };
-
-    entries.push(newEntry);
 
     db.collection("entries").add(newEntry)
       .then(() => {
@@ -133,7 +131,6 @@
     }
   }
 
-  // Fetch entries on page load
   window.onload = fetchEntries;
 </script>
 
