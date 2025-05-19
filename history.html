@@ -119,6 +119,8 @@
         <option value="">All Dates</option>
         <option value="today">Today</option>
         <option value="yesterday">Yesterday</option>
+        <option value="last7days">Last 7 Days</option>
+        <option value="last30days">Last 30 Days</option>
       </select>
       <button onclick="exportHistory()">Export</button>
       <button onclick="clearHistory()" class="danger">Clear</button>
@@ -133,6 +135,12 @@
   </footer>
 
   <script>
+    function isSameDay(d1, d2) {
+      return d1.getDate() === d2.getDate() &&
+             d1.getMonth() === d2.getMonth() &&
+             d1.getFullYear() === d2.getFullYear();
+    }
+
     function renderHistory() {
       const container = document.getElementById("historyContainer");
       const search = document.getElementById("search").value.toLowerCase();
@@ -141,25 +149,35 @@
 
       container.innerHTML = "";
 
+      const now = new Date();
       const filtered = allHistory.filter(line => {
         if (search && !line.toLowerCase().includes(search)) return false;
         const parts = line.split(" | ");
         if (parts.length < 4) return false;
 
         const date = new Date(parts[1]);
-        const now = new Date();
 
-        if (filterDate === "today") {
-          if (!(date.getDate() === now.getDate() &&
-                date.getMonth() === now.getMonth() &&
-                date.getFullYear() === now.getFullYear())) return false;
-        } else if (filterDate === "yesterday") {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          if (!(date.getDate() === yesterday.getDate() &&
-                date.getMonth() === yesterday.getMonth() &&
-                date.getFullYear() === yesterday.getFullYear())) return false;
+        switch(filterDate) {
+          case "today":
+            if (!isSameDay(date, now)) return false;
+            break;
+          case "yesterday":
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            if (!isSameDay(date, yesterday)) return false;
+            break;
+          case "last7days":
+            const days7Ago = new Date(now);
+            days7Ago.setDate(now.getDate() - 7);
+            if (!(date >= days7Ago && date <= now)) return false;
+            break;
+          case "last30days":
+            const days30Ago = new Date(now);
+            days30Ago.setDate(now.getDate() - 30);
+            if (!(date >= days30Ago && date <= now)) return false;
+            break;
         }
+
         return true;
       }).reverse();
 
