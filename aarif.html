@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multi OTP Tool</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<meta name="description" content="Multi OTP Tool - Instantly get temporary phone numbers and OTPs for verification.">
+  <meta name="keywords" content="OTP, SMS verification, temporary number, virtual phone, readyacc">
+  <meta name="author" content="YourName or YourCompany">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2886/2886249.png" type="image/png">
+  <style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #e0eafc, #cfdef3);
+    margin: 0; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  h2 {
+    color: #333; margin-bottom: 15px;
+  }
+  .box {
+    background: white;
+    padding: 20px;
+    margin: 10px 0;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+  }
+  label, select, input, button {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    font-size: 15px;
+  }
+  input, select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background: #28a745;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    margin-top: 15px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover {
+    background: #218838;
+  }
+  #loading {
+    display: none;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .spinner {
+    border: 4px solid #ccc;
+    border-top: 4px solid #28a745;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    margin: auto;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .history {
+    background: #f9f9f9;
+    padding: 12px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    border-radius: 8px;
+    color: #333;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .cancel-btn {
+    background: #dc3545;
+    color: white;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: auto;
+    margin-top: 2px;
+  }
+  .number-clickable {
+    cursor: pointer;
+    color: blue;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .number-clickable:hover {
+    text-decoration: underline;
+  }
+  .countdown {
+    font-weight: bold;
+    color: orange;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .history-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: nowrap;
+  }
+  .serial {
+    font-weight: bold;
+    min-width: 20px;
+  }
+  input[type="text"]::placeholder {
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+  <h2><i class="fas fa-key"></i> OTP Multi Number Tool</h2>
+
+  <div class="box">
+    <strong><i class="fas fa-wallet"></i> Balance:</strong>
+    <span id="balance">Loading...</span>
+  </div>
+
+  <div class="box">
+    <input type="text" id="search" placeholder="Search service..." oninput="filterServices()" />
+    <select id="services"><option>Loading...</option></select>
+
+    <label><i class="fas fa-hashtag"></i> How many numbers?</label>
+    <input type="number" id="count" value="1" min="1" max="10" />
+
+    <button onclick="getNumbers()"><i class="fas fa-phone"></i> Get Numbers</button>
+    <button onclick="window.location.href='history.html'"><i class="fas fa-history"></i> View History</button>
+
+    <div id="loading"><div class="spinner"></div></div>
+  </div>
+
+  <div class="box history" id="history">
+    <i class="fas fa-history"></i> Active requests and OTPs will appear here...
+  </div>
+
+<script>
+  const access = "3732c5f1bda8ec576dc9fd9052c8f8c9";
+  const proxy = "https://api.codetabs.com/v1/proxy?quest=";
+  let activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
+
+  function saveToHistory(serviceCode, number, otp) {
+    const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+    const now = new Date();
+    const serviceSelect = document.getElementById("services");
+    let serviceName = serviceCode;
+    for(let i=0; i < serviceSelect.options.length; i++) {
+      if(serviceSelect.options[i].value === serviceCode) {
+        serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
+        break;
+      }
+    }
+    const timeStr = now.toLocaleString();
+    const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
+    allHistory.push(entry);
+    localStorage.setItem("otpHistory", JSON.stringify(allHistory));
+  }
+
+  async function fetchProxy(url) {
+    const res = await fetch(proxy + encodeURIComponent(url));
+    return await res.text();
+  }
+
+  function updateStorage() {
+    localStorage.setItem("activeNumbers", JSON.stringify(activeNumbers));
+  }
+
+  function updateHistoryBox() {
+  const waiting = [];
+  let index = 1;
+  Object.entries(activeNumbers).forEach(([id, entry]) => {
+    if (!entry.otp) { // sirf wo jinke OTP nahi aaye
+      waiting.push(`
+        <div class="history-line">
+          <span class="serial">${index++}.</span>
+          <span class="number-clickable" onclick="navigator.clipboard.writeText('${entry.num.replace(/^91/, "")}')">
+            ${entry.num.replace(/^91/, "")}
+          </span>
+          <span class="countdown" id="cd_${id}">${entry.timeLeft}s</span>
+          <button id="cancel_${id}" class="cancel-btn">Cancel</button>
+        </div>
+      `);
+    } else {
+      // Agar OTP aa gaya to activeNumbers me toh rahe, 
+      // lekin yaha dikhane ki zarurat nahi
+    }
+  });
+  document.getElementById("history").innerHTML = waiting.join('<br>'); // sirf waiting numbers dikhayein
+}
+
+async function cancelNumber(id, skipHistory = false) {
+  const entry = activeNumbers[id];
+  if (!entry) return;
+
+  try {
+    const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`);
+    console.log("Cancel API response:", res);
+
+    if (res.includes("ACCESS_CANCEL") || res.includes("ACCESS_CANCEL_ALREADY")) {
+      delete activeNumbers[id];
+      updateStorage();
+      updateHistoryBox();
+      console.log("Calling loadBalance() after cancel...");
+      setTimeout(loadBalance, 2000);  // 2 second delay for balance update
+    } else {
+      console.warn("Cancel failed:", res);
+    }
+  } catch (err) {
+    console.error("Cancel error:", err);
+  }
+};
+
+  function startCountdown(id) {
+    const countdown = setInterval(() => {
+      if (!activeNumbers[id]) return clearInterval(countdown);
+      activeNumbers[id].timeLeft -= 1;
+      const el = document.getElementById(`cd_${id}`);
+      if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
+      if (activeNumbers[id].timeLeft <= 0) {
+        clearInterval(countdown);
+        cancelNumber(id, true);
+      }
+      updateStorage();
+    }, 1000);
+  }
+
+  function createNumberEntry(i, id, num) {
+    const stripped = num.replace(/^91/, "");
+    activeNumbers[id] = {
+      num,
+      service: document.getElementById("services").value,
+      display: `<span class="number-clickable" onclick="navigator.clipboard.writeText('${stripped}')">${stripped}</span>`,
+      otp: null,
+      timeLeft: 120
+    };
+
+    updateStorage();
+    updateHistoryBox();
+
+    setTimeout(() => {
+      const btn = document.getElementById(`cancel_${id}`);
+      if (btn) btn.onclick = () => cancelNumber(id);
+    }, 100);
+
+    startCountdown(id);
+  }
+
+  async function getNumbers() {
+  const service = document.getElementById("services").value;
+  const count = parseInt(document.getElementById("count").value) || 1;
+  document.getElementById("loading").style.display = "block";
+
+  for (let i = 0; i < count; i++) {
+    try {
+      const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNewNumber&service=${service}`);
+      if (!res.startsWith("ACCESS_NUMBER")) {
+        console.warn("Error getting number:", res); // Alert hata diya
+        continue;
+      }
+      const [, id, num] = res.split(":");
+      createNumberEntry(i, id, num);
+
+      // Balance ko turant refresh karo
+      loadBalance();
+
+      let tries = 0;
+      const poll = setInterval(async () => {
+        tries++;
+        if (!activeNumbers[id]) return clearInterval(poll);
+        const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
+        if (status.startsWith("STATUS_OK:")) {
+          clearInterval(poll);
+          const otp = status.split(":")[1];
+          activeNumbers[id].otp = otp;
+          updateStorage();
+          updateHistoryBox();
+          saveToHistory(service, activeNumbers[id].num, otp);
+        }
+        if (tries >= 24) {
+          clearInterval(poll);
+          cancelNumber(id, true);
+        }
+      }, 5000);
+    } catch (err) {
+      console.error("Fetch error:", err); // Alert hata diya
+    }
+  }
+
+  document.getElementById("loading").style.display = "none";
+};
+
+  async function loadBalance() {
+    try {
+      const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getAvailableBalance`);
+      const bal = res.split(":")[1] || "0";
+      document.getElementById("balance").textContent = bal;
+    } catch {
+      document.getElementById("balance").textContent = "Error";
+    }
+  }
+
+  async function loadServices() {
+    try {
+      const res = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getServiceList`);
+      const data = JSON.parse(res);
+      const sel = document.getElementById("services");
+      sel.innerHTML = "";
+      Object.entries(data).forEach(([code, name]) => {
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = `${name} (${code})`;
+        sel.appendChild(opt);
+      });
+    } catch {
+      document.getElementById("services").innerHTML = "<option>Error loading services</option>";
+    }
+  }
+
+  function restoreActiveNumbers() {
+    Object.entries(activeNumbers).forEach(([id, entry]) => {
+      updateHistoryBox();
+
+      setTimeout(() => {
+        const btn = document.getElementById(`cancel_${id}`);
+        if (btn) btn.onclick = () => cancelNumber(id);
+      }, 100);
+
+      startCountdown(id);
+
+      let tries = 0;
+      const poll = setInterval(async () => {
+        tries++;
+        if (!activeNumbers[id]) return clearInterval(poll);
+        const status = await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=getNmSt&id=${id}`);
+        if (status.startsWith("STATUS_OK:")) {
+          clearInterval(poll);
+          const otp = status.split(":")[1];
+          activeNumbers[id].otp = otp;
+          updateStorage();
+          updateHistoryBox();
+          saveToHistory(entry.service, activeNumbers[id].num, otp);
+        }
+        if (tries >= 24) {
+          clearInterval(poll);
+          cancelNumber(id, true);
+        }
+      }, 5000);
+    });
+  }
+
+  function filterServices() {
+    const input = document.getElementById("search").value.toLowerCase();
+    const select = document.getElementById("services");
+    let firstMatchIndex = -1;
+    for (let i = 0; i < select.options.length; i++) {
+      const text = select.options[i].textContent.toLowerCase();
+      if (text.includes(input)) {
+        select.options[i].style.display = "";
+        if (firstMatchIndex === -1) firstMatchIndex = i;
+      } else {
+        select.options[i].style.display = "none";
+      }
+    }
+    if (firstMatchIndex !== -1) {
+      select.selectedIndex = firstMatchIndex;
+    }
+  }
+
+  function showHistoryAlert() {
+  const history = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+  if (history.length === 0) {
+    alert("No OTP history yet.");
+    return;
+  }
+  alert(history.join("\n\n"));
+}
+
+  window.onload = () => {
+    loadBalance();
+    loadServices();
+    updateHistoryBox();
+    restoreActiveNumbers();
+  };
+  const redirectToHistory = () => {
+  window.location.href = "history.html";
+};
+</script>
+  <footer style="margin-top: 40px; text-align: center; font-size: 14px; color: #555;">
+    <hr style="margin: 20px auto; width: 80%;">
+    <p>&copy; 2025 Multi OTP Tool. All rights reserved.</p>
+    <p>Developed by <a href="https://yourwebsite.com" target="_blank" style="color: #007bff;">YourName</a></p>
+    <section id="contact" style="margin-top: 60px; text-align: center;">
+    <h3>Contact Us</h3>
+    <p>Email: support@example.com</p>
+    <p>Telegram: @yourtelegram</p>
+    </section>
+  </footer>
+</body>
+</html>
