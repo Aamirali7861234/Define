@@ -235,16 +235,14 @@ async function cancelNumber(id, skipHistory = false) {
 };
 
   function startCountdown(id) {
-  const startTime = Date.now();
-  const duration = 120000; // 2 minutes in ms
-
   const countdown = setInterval(() => {
-    if (!activeNumbers[id]) return clearInterval(countdown);
+    const entry = activeNumbers[id];
+    if (!entry) return clearInterval(countdown);
 
-    const timePassed = Date.now() - startTime;
-    const timeLeft = Math.max(0, Math.ceil((duration - timePassed) / 1000));
+    const now = Date.now();
+    const timeLeft = Math.max(0, Math.ceil((entry.expireAt - now) / 1000));
+    entry.timeLeft = timeLeft;
 
-    activeNumbers[id].timeLeft = timeLeft;
     const el = document.getElementById(`cd_${id}`);
     if (el) el.textContent = `${timeLeft}s`;
 
@@ -257,26 +255,29 @@ async function cancelNumber(id, skipHistory = false) {
   }, 1000);
 }
 
-  function createNumberEntry(i, id, num) {
-    const stripped = num.replace(/^91/, "");
-    activeNumbers[id] = {
-      num,
-      service: document.getElementById("services").value,
-      display: `<span class="number-clickable" onclick="navigator.clipboard.writeText('${stripped}')">${stripped}</span>`,
-      otp: null,
-      timeLeft: 120
-    };
+function createNumberEntry(i, id, num) {
+  const stripped = num.replace(/^91/, "");
+  const expireAt = Date.now() + 120000; // 2 minutes from now
 
-    updateStorage();
-    updateHistoryBox();
+  activeNumbers[id] = {
+    num,
+    service: document.getElementById("services").value,
+    display: `<span class="number-clickable" onclick="navigator.clipboard.writeText('${stripped}')">${stripped}</span>`,
+    otp: null,
+    timeLeft: 120,
+    expireAt
+  };
 
-    setTimeout(() => {
-      const btn = document.getElementById(`cancel_${id}`);
-      if (btn) btn.onclick = () => cancelNumber(id);
-    }, 100);
+  updateStorage();
+  updateHistoryBox();
 
-    startCountdown(id);
-  }
+  setTimeout(() => {
+    const btn = document.getElementById(`cancel_${id}`);
+    if (btn) btn.onclick = () => cancelNumber(id);
+  }, 100);
+
+  startCountdown(id);
+}
 
   async function getNumbers() {
   const service = document.getElementById("services").value;
