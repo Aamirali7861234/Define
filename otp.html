@@ -154,21 +154,26 @@
   let activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
 
   function saveToHistory(serviceCode, number, otp) {
-    const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-    const now = new Date();
-    const serviceSelect = document.getElementById("services");
-    let serviceName = serviceCode;
-    for(let i=0; i < serviceSelect.options.length; i++) {
-      if(serviceSelect.options[i].value === serviceCode) {
-        serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
-        break;
-      }
+  const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+
+  const existing = allHistory.find(entry => entry.includes(number) && entry.includes(otp));
+  if (existing) return; // Already saved
+
+  const now = new Date();
+  const serviceSelect = document.getElementById("services");
+  let serviceName = serviceCode;
+  for(let i=0; i < serviceSelect.options.length; i++) {
+    if(serviceSelect.options[i].value === serviceCode) {
+      serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
+      break;
     }
-    const timeStr = now.toLocaleString();
-    const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
-    allHistory.push(entry);
-    localStorage.setItem("otpHistory", JSON.stringify(allHistory));
   }
+
+  const timeStr = now.toLocaleString();
+  const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
+  allHistory.push(entry);
+  localStorage.setItem("otpHistory", JSON.stringify(allHistory));
+}
 
   async function fetchProxy(url) {
     const res = await fetch(proxy + encodeURIComponent(url));
@@ -225,18 +230,27 @@ async function cancelNumber(id, skipHistory = false) {
 };
 
   function startCountdown(id) {
-    const countdown = setInterval(() => {
-      if (!activeNumbers[id]) return clearInterval(countdown);
-      activeNumbers[id].timeLeft -= 1;
-      const el = document.getElementById(`cd_${id}`);
-      if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
-      if (activeNumbers[id].timeLeft <= 0) {
-        clearInterval(countdown);
-        cancelNumber(id, true);
-      }
-      updateStorage();
-    }, 1000);
-  }
+  const startTime = Date.now();
+  const duration = 120000; // 2 minutes in ms
+
+  const countdown = setInterval(() => {
+    if (!activeNumbers[id]) return clearInterval(countdown);
+
+    const timePassed = Date.now() - startTime;
+    const timeLeft = Math.max(0, Math.ceil((duration - timePassed) / 1000));
+
+    activeNumbers[id].timeLeft = timeLeft;
+    const el = document.getElementById(`cd_${id}`);
+    if (el) el.textContent = `${timeLeft}s`;
+
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      cancelNumber(id, true);
+    }
+
+    updateStorage();
+  }, 1000);
+}
 
   function createNumberEntry(i, id, num) {
     const stripped = num.replace(/^91/, "");
