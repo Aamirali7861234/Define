@@ -187,7 +187,14 @@
   function updateHistoryBox() {
   const waiting = [];
   let index = 1;
+
   Object.entries(activeNumbers).forEach(([id, entry]) => {
+    // Agar number cancel hua ho to use hatao (status 8 wali logic cancel ke liye)
+    if (entry.status === 8) {
+      delete activeNumbers[id];
+      return; // skip this entry
+    }
+
     if (!entry.otp) { // sirf wo jinke OTP nahi aaye
       waiting.push(`
         <div class="history-line">
@@ -199,14 +206,12 @@
           <button id="cancel_${id}" class="cancel-btn">Cancel</button>
         </div>
       `);
-    } else {
-      // Agar OTP aa gaya to activeNumbers me toh rahe, 
-      // lekin yaha dikhane ki zarurat nahi
     }
   });
+
+  localStorage.setItem("activeNumbers", JSON.stringify(activeNumbers)); // storage update karo
   document.getElementById("history").innerHTML = waiting.join('<br>'); // sirf waiting numbers dikhayein
 }
-
 async function cancelNumber(id, skipHistory = false) {
   const entry = activeNumbers[id];
   if (!entry) return;
