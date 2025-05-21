@@ -234,49 +234,38 @@ async function cancelNumber(id, skipHistory = false) {
   }
 };
 
-  function startCountdown(id) {
-  const countdown = setInterval(() => {
-    const entry = activeNumbers[id];
-    if (!entry) return clearInterval(countdown);
+  function startCountdown(id) { const startTime = Date.now(); const duration = 120000; // 2 minutes in ms
 
-    const now = Date.now();
-    const timeLeft = Math.max(0, Math.ceil((entry.expireAt - now) / 1000));
-    entry.timeLeft = timeLeft;
+const countdown = setInterval(() => { if (!activeNumbers[id]) return clearInterval(countdown);
 
-    const el = document.getElementById(`cd_${id}`);
-    if (el) el.textContent = `${timeLeft}s`;
+const timePassed = Date.now() - startTime;
+const timeLeft = Math.max(0, Math.ceil((duration - timePassed) / 1000));
 
-    if (timeLeft <= 0) {
-      clearInterval(countdown);
-      cancelNumber(id, true);
-    }
+activeNumbers[id].timeLeft = timeLeft;
+const el = document.getElementById(`cd_${id}`);
+if (el) el.textContent = `${timeLeft}s`;
 
-    updateStorage();
-  }, 1000);
+if (timeLeft <= 0) {
+  clearInterval(countdown);
+  cancelNumber(id, true);
 }
 
-function createNumberEntry(i, id, num) {
-  const stripped = num.replace(/^91/, "");
-  const expireAt = Date.now() + 120000; // 2 minutes from now
+updateStorage();
 
-  activeNumbers[id] = {
-    num,
-    service: document.getElementById("services").value,
-    display: `<span class="number-clickable" onclick="navigator.clipboard.writeText('${stripped}')">${stripped}</span>`,
-    otp: null,
-    timeLeft: 120,
-    expireAt
-  };
+}, 1000); }
 
-  updateStorage();
-  updateHistoryBox();
+function createNumberEntry(i, id, num) { const stripped = num.replace(/^91/, ""); activeNumbers[id] = { num, service: document.getElementById("services").value, display: <span class="number-clickable" onclick="navigator.clipboard.writeText('${stripped}')">${stripped}</span>, otp: null, timeLeft: 120 };
 
-  setTimeout(() => {
-    const btn = document.getElementById(`cancel_${id}`);
-    if (btn) btn.onclick = () => cancelNumber(id);
-  }, 100);
+updateStorage();
+updateHistoryBox();
 
-  startCountdown(id);
+setTimeout(() => {
+  const btn = document.getElementById(`cancel_${id}`);
+  if (btn) btn.onclick = () => cancelNumber(id);
+}, 100);
+
+startCountdown(id);
+
 }
 
   async function getNumbers() {
