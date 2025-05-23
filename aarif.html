@@ -238,7 +238,7 @@ async function cancelNumber(id, skipHistory = false) {
       updateHistoryBox();  // UI update here after cancel
 
       console.log("Calling loadBalance() after cancel...");
-      setTimeout(loadBalance, 2000);  // 2 second delay for balance update
+      setTimeout(loadBalance, 5000);  // 5 second delay for balance update
     } else {
       console.warn("Cancel failed:", res);
     }
