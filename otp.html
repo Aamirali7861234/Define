@@ -154,22 +154,26 @@
   let activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
 
   function saveToHistory(serviceCode, number, otp) {
-    const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-    const now = new Date();
-    const serviceSelect = document.getElementById("services");
-    let serviceName = serviceCode;
-    for(let i=0; i < serviceSelect.options.length; i++) {
-      if(serviceSelect.options[i].value === serviceCode) {
-        serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
-        break;
-      }
-    }
-    const timeStr = now.toLocaleString();
-    const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
-    allHistory.push(entry);
-    localStorage.setItem("otpHistory", JSON.stringify(allHistory));
-  }
+  const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+  const entryExists = allHistory.some(entry =>
+    entry.includes(number.replace(/^91/, '')) && entry.includes(`OTP: ${otp}`)
+  );
+  if (entryExists) return; // Skip duplicate
 
+  const now = new Date();
+  const serviceSelect = document.getElementById("services");
+  let serviceName = serviceCode;
+  for(let i=0; i < serviceSelect.options.length; i++) {
+    if(serviceSelect.options[i].value === serviceCode) {
+      serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
+      break;
+    }
+  }
+  const timeStr = now.toLocaleString();
+  const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
+  allHistory.push(entry);
+  localStorage.setItem("otpHistory", JSON.stringify(allHistory));
+}
   async function fetchProxy(url) {
     const res = await fetch(proxy + encodeURIComponent(url));
     return await res.text();
