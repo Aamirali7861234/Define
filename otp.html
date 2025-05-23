@@ -231,7 +231,8 @@ async function cancelNumber(id, skipHistory = false) {
     if (res.includes("ACCESS_CANCEL") || res.includes("ACCESS_CANCEL_ALREADY")) {
       delete activeNumbers[id];
       updateStorage();
-      updateHistoryBox();
+      updateHistoryBox();  // UI update here after cancel
+
       console.log("Calling loadBalance() after cancel...");
       setTimeout(loadBalance, 2000);  // 2 second delay for balance update
     } else {
@@ -241,7 +242,6 @@ async function cancelNumber(id, skipHistory = false) {
     console.error("Cancel error:", err);
   }
 };
-
   function startCountdown(id) {
   const countdown = setInterval(() => {
     if (!activeNumbers[id]) {
@@ -250,7 +250,7 @@ async function cancelNumber(id, skipHistory = false) {
     }
     if (activeNumbers[id].timeLeft <= 0) {
       clearInterval(countdown);
-      cancelNumber(id, true);
+      cancelNumber(id);  // skipHistory parameter hata diya
       return;
     }
     const el = document.getElementById(`cd_${id}`);
