@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>YouTube Clone</title>
+
+  <style>
+
+    :root {
+
+      --bg: #f9f9f9;
+
+      --primary: #ff0000;
+
+      --dark: #222;
+
+      --text: #333;
+
+      --white: #fff;
+
+      --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+    }
+
+
+
+    * {
+
+      margin: 0;
+
+      padding: 0;
+
+      box-sizing: border-box;
+
+    }
+
+
+
+    body {
+
+      font-family: 'Segoe UI', sans-serif;
+
+      background: var(--bg);
+
+      color: var(--text);
+
+    }
+
+
+
+    header {
+
+      background: var(--primary);
+
+      color: var(--white);
+
+      padding: 10px 20px;
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      position: sticky;
+
+      top: 0;
+
+      z-index: 1000;
+
+      box-shadow: var(--shadow);
+
+    }
+
+
+
+    .logo {
+
+      display: flex;
+
+      align-items: center;
+
+      font-size: 20px;
+
+      font-weight: bold;
+
+      gap: 10px;
+
+    }
+
+
+
+    .logo img {
+
+      width: 24px;
+
+      height: 24px;
+
+    }
+
+
+
+    .menu-toggle {
+
+      display: none;
+
+      font-size: 26px;
+
+      cursor: pointer;
+
+    }
+
+
+
+    .menu {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 20px;
+
+    }
+
+
+
+    .menu a {
+
+      color: white;
+
+      text-decoration: none;
+
+      font-weight: 500;
+
+      padding: 6px 10px;
+
+      border-radius: 4px;
+
+      transition: background 0.3s;
+
+    }
+
+
+
+    .menu a:hover {
+
+      background: rgba(255, 255, 255, 0.2);
+
+    }
+
+
+
+    .search-bar {
+
+      display: flex;
+
+      align-items: center;
+
+    }
+
+
+
+    .search-bar input {
+
+      padding: 8px;
+
+      border: none;
+
+      border-radius: 4px 0 0 4px;
+
+      outline: none;
+
+      min-width: 200px;
+
+    }
+
+
+
+    .search-bar button {
+
+      padding: 8px 12px;
+
+      border: none;
+
+      background: var(--dark);
+
+      color: white;
+
+      border-radius: 0 4px 4px 0;
+
+      cursor: pointer;
+
+    }
+
+
+
+    .container {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+    }
+
+
+
+    aside {
+
+      width: 220px;
+
+      background: white;
+
+      padding: 15px;
+
+      box-shadow: var(--shadow);
+
+      min-height: 100vh;
+
+    }
+
+
+
+    aside ul {
+
+      list-style: none;
+
+    }
+
+
+
+    aside li {
+
+      margin: 16px 0;
+
+      font-weight: 500;
+
+      cursor: pointer;
+
+      transition: color 0.2s;
+
+    }
+
+
+
+    aside li:hover {
+
+      color: var(--primary);
+
+    }
+
+
+
+    main {
+
+      flex: 1;
+
+      padding: 20px;
+
+    }
+
+
+
+    .ad-banner {
+
+      background: #ffe8e8;
+
+      color: #d10000;
+
+      padding: 10px;
+
+      border: 1px dashed #ff4444;
+
+      border-radius: 6px;
+
+      text-align: center;
+
+      margin-bottom: 20px;
+
+      font-weight: bold;
+
+    }
+
+
+
+    .videos {
+
+      display: grid;
+
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+      gap: 20px;
+
+    }
+
+
+
+    .video {
+
+      background: white;
+
+      border-radius: 8px;
+
+      overflow: hidden;
+
+      box-shadow: var(--shadow);
+
+      transition: transform 0.2s ease;
+
+    }
+
+
+
+    .video:hover {
+
+      transform: translateY(-5px);
+
+    }
+
+
+
+    .video iframe {
+
+      width: 100%;
+
+      height: 180px;
+
+      border: none;
+
+    }
+
+
+
+    .video h4 {
+
+      padding: 10px;
+
+      font-size: 16px;
+
+    }
+
+
+
+    @media (max-width: 768px) {
+
+      .menu {
+
+        display: none;
+
+        flex-direction: column;
+
+        background: var(--primary);
+
+        width: 100%;
+
+        padding: 10px 0;
+
+      }
+
+
+
+      .menu.active {
+
+        display: flex;
+
+      }
+
+
+
+      .search-bar {
+
+        flex-direction: column;
+
+        width: 100%;
+
+      }
+
+
+
+      .search-bar input,
+
+      .search-bar button {
+
+        width: 100%;
+
+        margin-top: 5px;
+
+      }
+
+
+
+      .menu-toggle {
+
+        display: block;
+
+      }
+
+
+
+      .container {
+
+        flex-direction: column;
+
+      }
+
+
+
+      aside {
+
+        display: none;
+
+      }
+
+        .menu {
+
+    display: none;
+
+    flex-direction: column;
+
+    background: var(--primary);
+
+    width: 100%;
+
+    padding: 10px 0;
+
+  }
+
+
+
+  .menu.active {
+
+    display: flex;
+
+  }
+
+
+
+  .search-bar {
+
+    display: none;
+
+    flex-direction: column;
+
+    width: 100%;
+
+    margin-top: 10px;
+
+    padding: 0 10px;
+
+  }
+
+
+
+  .search-bar.active {
+
+    display: flex;
+
+  }
+
+
+
+  .search-bar input,
+
+  .search-bar button {
+
+    width: 100%;
+
+    margin-top: 5px;
+
+  }
+
+
+
+  .menu-toggle {
+
+    display: block;
+
+    font-size: 24px;
+
+    cursor: pointer;
+
+  }
+
+
+
+    }
+
+    .search-bar {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+}
+
+
+
+.search-bar input {
+
+  padding: 8px;
+
+  border: none;
+
+  border-radius: 4px;
+
+  outline: none;
+
+  flex: 1;
+
+}
+
+
+
+.search-bar button {
+
+  padding: 8px 12px;
+
+  border: none;
+
+  background: var(--dark);
+
+  color: white;
+
+  border-radius: 4px;
+
+  cursor: pointer;
+
+}
+
+
+
+@media (max-width: 768px) {
+
+  .search-bar {
+
+    display: none;
+
+    flex-direction: column;
+
+    width: 100%;
+
+    padding: 10px;
+
+    background: var(--primary);
+
+  }
+
+
+
+  .search-bar.active {
+
+    display: flex;
+
+  }
+
+
+
+  .search-bar input,
+
+  .search-bar button {
+
+    width: 100%;
+
+    margin-top: 6px;
+
+  }
+
+
+
+  .search-bar button {
+
+    background: #000;
+
+  }
+
+}
+
+  </style>
+
+</head>
+
+<body>
+
+
+
+<header>
+
+  <div class="logo">
+
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/youtube-play.png" alt="YouTube Icon" />
+
+    YouTube
+
+  </div>
+
+<div class="menu-toggle" onclick="toggleSearch()">🔍</div>
+
+
+
+<div class="search-bar" id="searchBar">
+
+  <input type="text" id="searchInput" placeholder="Search videos..." oninput="searchVideos()">
+
+  <button onclick="searchVideos()">Search</button>
+
+</div>
+
+
+
+  <div class="menu" id="menu">
+
+    <a href="#">Home</a>
+
+    <a href="#">Trending</a>
+
+    <a href="#">Subscriptions</a>
+
+    <a href="#">Library</a>
+
+    <div class="search-bar">
+
+      <input type="text" id="searchInput" placeholder="Search videos..." onkeypress="if(event.key === 'Enter') searchVideos()">
+
+      <button onclick="searchVideos()">Search</button>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+
+<div class="container">
+
+  <aside>
+
+    <ul>
+
+      <li>🏠 Home</li>
+
+      <li>🔥 Trending</li>
+
+      <li>📺 Subscriptions</li>
+
+      <li>📚 Library</li>
+
+    </ul>
+
+  </aside>
+
+
+
+  <main>
+
+    <div class="ad-banner">
+
+      📢 Ad: Get 50% Off on Web Hosting - Limited Time Offer!
+
+    </div>
+
+<div id="playerContainer" style="display:none; margin-bottom: 20px;">
+
+    <iframe id="playerFrame" width="100%" height="200px" frameborder="0" allowfullscreen></iframe>
+
+  </div>
+
+    <div class="videos" id="videoContainer">
+
+      <!-- Videos will load here -->
+
+    </div>
+
+  </main>
+
+</div>
+
+<footer style="background:#222; color:#fff; text-align:center; padding:20px; margin-top:40px;">
+
+  <p>&copy; 2025 YouTube Clone. All rights reserved.</p>
+
+  <p>
+
+    <a href="#" style="color:#ff4444; text-decoration:none; margin:0 10px;">About</a> |
+
+    <a href="#" style="color:#ff4444; text-decoration:none; margin:0 10px;">Contact</a> |
+
+    <a href="#" style="color:#ff4444; text-decoration:none; margin:0 10px;">Privacy</a>
+
+  </p>
+
+</footer>
+
+<script>
+
+ const videos = [
+
+  {
+
+    title: "Badri Ki Dulhania | Varun Dhawan, Alia Bhatt",
+
+    url: "https://www.youtube.com/embed/k2qgadSvNyU",
+
+    thumbnail: "https://img.youtube.com/vi/k2qgadSvNyU/hqdefault.jpg"
+
+  },
+
+  {
+
+    title: "Tamma Tamma Again | Badrinath Ki Dulhania",
+
+    url: "https://www.youtube.com/embed/ZXk9UqQKbm0",
+
+    thumbnail: "https://img.youtube.com/vi/ZXk9UqQKbm0/hqdefault.jpg"
+
+  },
+
+  {
+
+    title: "Coca Cola Tu | Luka Chuppi",
+
+    url: "https://www.youtube.com/embed/I6GqYbRtgfU",
+
+    thumbnail: "https://img.youtube.com/vi/I6GqYbRtgfU/hqdefault.jpg"
+
+  },
+
+  {
+
+    title: "Lungi Dance | SRK & Deepika | Chennai Express",
+
+    url: "https://www.youtube.com/embed/9m4ZyAjFyvE",
+
+    thumbnail: "https://img.youtube.com/vi/9m4ZyAjFyvE/hqdefault.jpg"
+
+  },
+
+  {
+
+    title: "Kar Gayi Chull | Kapoor & Sons",
+
+    url: "https://www.youtube.com/embed/k4yXQkG2s1E",
+
+    thumbnail: "https://img.youtube.com/vi/k4yXQkG2s1E/hqdefault.jpg"
+
+  },
+
+  {
+
+    title: "High Rated Gabru | Nawabzaade",
+
+    url: "https://www.youtube.com/embed/ACzrOXg_TG8",
+
+    thumbnail: "https://img.youtube.com/vi/ACzrOXg_TG8/hqdefault.jpg"
+
+  }
+
+];
+
+
+
+
+
+  function loadVideos(list = videos) {
+
+    const container = document.getElementById("videoContainer");
+
+    container.innerHTML = "";
+
+    list.forEach(v => {
+
+      container.innerHTML += `
+
+        <div class="video">
+
+          <iframe src="${v.url}" allowfullscreen></iframe>
+
+          <h4>${v.title}</h4>
+
+        </div>`;
+
+    });
+
+  }
+
+
+
+  function searchVideos() {
+
+    const q = document.getElementById("searchInput").value.toLowerCase();
+
+    const filtered = videos.filter(v => v.title.toLowerCase().includes(q));
+
+    loadVideos(filtered);
+
+  }
+
+
+
+  function toggleMenu() {
+
+    document.getElementById("menu").classList.toggle("active");
+
+  }
+
+
+
+  loadVideos();
+
+  function loadVideos(list = videos) {
+
+  const container = document.getElementById("videoContainer");
+
+  container.innerHTML = "";
+
+  list.forEach(v => {
+
+    container.innerHTML += `
+
+      <div class="video">
+
+        <img src="${v.thumbnail}" alt="${v.title}" style="width:100%; height:180px; object-fit:cover; cursor:pointer;" onclick="openVideo('${v.url}')">
+
+        <h4>${v.title}</h4>
+
+      </div>`;
+
+  });
+
+}
+
+
+
+function openVideo(url) {
+
+  const player = document.getElementById("playerContainer");
+
+  const frame = document.getElementById("playerFrame");
+
+  frame.src = url;
+
+  player.style.display = "block";
+
+  window.scrollTo({ top: player.offsetTop - 100, behavior: "smooth" });
+
+}
+
+function searchVideos() {
+
+  const q = document.getElementById("searchInput").value.toLowerCase().trim();
+
+  const filtered = videos.filter(v => v.title.toLowerCase().includes(q));
+
+  loadVideos(filtered);
+
+}
+
+function toggleSearch() {
+
+  document.getElementById("searchBar").classList.toggle("active");
+
+}
+
+</script>
+
+</body>
+
+</html>
+
