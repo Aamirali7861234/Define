@@ -235,19 +235,22 @@ async function cancelNumber(id, skipHistory = false) {
 };
 
   function startCountdown(id) {
-    const countdown = setInterval(() => {
-      if (!activeNumbers[id]) return clearInterval(countdown);
-      activeNumbers[id].timeLeft -= 1;
-      const el = document.getElementById(`cd_${id}`);
-      if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
-      if (activeNumbers[id].timeLeft <= 0) {
-        clearInterval(countdown);
-        cancelNumber(id, true);
-      }
-      updateStorage();
-    }, 1000);
-  }
-
+  const countdown = setInterval(() => {
+    if (!activeNumbers[id]) {
+      clearInterval(countdown);
+      return;
+    }
+    if (activeNumbers[id].timeLeft <= 0) {
+      clearInterval(countdown);
+      cancelNumber(id, true);
+      return;
+    }
+    const el = document.getElementById(`cd_${id}`);
+    if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
+    activeNumbers[id].timeLeft -= 1;
+    updateStorage();
+  }, 1000);
+}
   function createNumberEntry(i, id, num) {
     const stripped = num.replace(/^91/, "");
     activeNumbers[id] = {
