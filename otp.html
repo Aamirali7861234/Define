@@ -154,36 +154,30 @@
   let activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
 
   function saveToHistory(serviceCode, number, otp) {
-  const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-
-  function saveToHistory(serviceCode, number, otp) {
-  let allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-
-  // Check if this number+otp combination already exists
-  const exists = allHistory.some(entry => entry.number === number && entry.otp === otp);
-  if (exists) return; // Already saved
-
-  const now = new Date();
-  const serviceSelect = document.getElementById("services");
-  let serviceName = serviceCode;
-  for(let i = 0; i < serviceSelect.options.length; i++) {
-    if(serviceSelect.options[i].value === serviceCode) {
-      serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
-      break;
+    const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+    const now = new Date();
+    const serviceSelect = document.getElementById("services");
+    let serviceName = serviceCode;
+    for(let i=0; i < serviceSelect.options.length; i++) {
+      if(serviceSelect.options[i].value === serviceCode) {
+        serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
+        break;
+      }
     }
+    const timeStr = now.toLocaleString();
+    const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
+    allHistory.push(entry);
+    localStorage.setItem("otpHistory", JSON.stringify(allHistory));
   }
 
-  const timeStr = now.toLocaleString();
-  const entry = {
-    service: serviceName,
-    time: timeStr,
-    number: number.replace(/^91/, ''),
-    otp: otp
-  };
-  allHistory.push(entry);
-  localStorage.setItem("otpHistory", JSON.stringify(allHistory));
-}
+  async function fetchProxy(url) {
+    const res = await fetch(proxy + encodeURIComponent(url));
+    return await res.text();
+  }
 
+  function updateStorage() {
+    localStorage.setItem("activeNumbers", JSON.stringify(activeNumbers));
+  }
 
   async function fetchProxy(url) {
     const res = await fetch(proxy + encodeURIComponent(url));
