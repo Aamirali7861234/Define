@@ -431,8 +431,7 @@ async function cancelNumber(id, skipHistory = false) {
   if (confirmClear) {
     localStorage.removeItem("otpHistory");
     alert("History cleared.");
-    loadHistory(); // agar history reload karwana hai
-    location.reload();
+    location.reload(); // directly after alert
   }
 }
 </script>
