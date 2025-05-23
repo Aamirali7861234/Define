@@ -125,7 +125,11 @@
 </head>
 <body>
   <h2><i class="fas fa-key"></i> OTP Multi Number Tool</h2>
-
+<div style="margin: 10px;">
+  <button onclick="clearHistory()" style="padding: 8px 12px; background-color: #f44336; color: white; border: none; border-radius: 5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+    <i class="fas fa-trash"></i> Clear Storage
+  </button>
+</div>
   <div class="box">
     <strong><i class="fas fa-wallet"></i> Balance:</strong>
     <span id="balance">Loading...</span>
@@ -154,20 +158,33 @@
   let activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
 
   function saveToHistory(serviceCode, number, otp) {
-    const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
-    const now = new Date();
-    const serviceSelect = document.getElementById("services");
-    let serviceName = serviceCode;
-    for(let i=0; i < serviceSelect.options.length; i++) {
-      if(serviceSelect.options[i].value === serviceCode) {
-        serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
-        break;
-      }
+  const allHistory = JSON.parse(localStorage.getItem("otpHistory") || "[]");
+  const entryExists = allHistory.some(entry =>
+    entry.includes(number.replace(/^91/, '')) && entry.includes(`OTP: ${otp}`)
+  );
+  if (entryExists) return; // Skip duplicate
+
+  const now = new Date();
+  const serviceSelect = document.getElementById("services");
+  let serviceName = serviceCode;
+  for(let i=0; i < serviceSelect.options.length; i++) {
+    if(serviceSelect.options[i].value === serviceCode) {
+      serviceName = serviceSelect.options[i].textContent.split("(")[0].trim();
+      break;
     }
-    const timeStr = now.toLocaleString();
-    const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
-    allHistory.push(entry);
-    localStorage.setItem("otpHistory", JSON.stringify(allHistory));
+  }
+  const timeStr = now.toLocaleString();
+  const entry = `${serviceName} | ${timeStr} | ${number.replace(/^91/, '')} | OTP: ${otp}`;
+  allHistory.push(entry);
+  localStorage.setItem("otpHistory", JSON.stringify(allHistory));
+}
+  async function fetchProxy(url) {
+    const res = await fetch(proxy + encodeURIComponent(url));
+    return await res.text();
+  }
+
+  function updateStorage() {
+    localStorage.setItem("activeNumbers", JSON.stringify(activeNumbers));
   }
 
   async function fetchProxy(url) {
@@ -182,7 +199,14 @@
   function updateHistoryBox() {
   const waiting = [];
   let index = 1;
+
   Object.entries(activeNumbers).forEach(([id, entry]) => {
+    // Agar number cancel hua ho to use hatao (status 8 wali logic cancel ke liye)
+    if (entry.status === 8) {
+      delete activeNumbers[id];
+      return; // skip this entry
+    }
+
     if (!entry.otp) { // sirf wo jinke OTP nahi aaye
       waiting.push(`
         <div class="history-line">
@@ -194,14 +218,12 @@
           <button id="cancel_${id}" class="cancel-btn">Cancel</button>
         </div>
       `);
-    } else {
-      // Agar OTP aa gaya to activeNumbers me toh rahe, 
-      // lekin yaha dikhane ki zarurat nahi
     }
   });
+
+  localStorage.setItem("activeNumbers", JSON.stringify(activeNumbers)); // storage update karo
   document.getElementById("history").innerHTML = waiting.join('<br>'); // sirf waiting numbers dikhayein
 }
-
 async function cancelNumber(id, skipHistory = false) {
   const entry = activeNumbers[id];
   if (!entry) return;
@@ -213,7 +235,8 @@ async function cancelNumber(id, skipHistory = false) {
     if (res.includes("ACCESS_CANCEL") || res.includes("ACCESS_CANCEL_ALREADY")) {
       delete activeNumbers[id];
       updateStorage();
-      updateHistoryBox();
+      updateHistoryBox();  // UI update here after cancel
+
       console.log("Calling loadBalance() after cancel...");
       setTimeout(loadBalance, 2000);  // 2 second delay for balance update
     } else {
@@ -223,21 +246,23 @@ async function cancelNumber(id, skipHistory = false) {
     console.error("Cancel error:", err);
   }
 };
-
   function startCountdown(id) {
-    const countdown = setInterval(() => {
-      if (!activeNumbers[id]) return clearInterval(countdown);
-      activeNumbers[id].timeLeft -= 1;
-      const el = document.getElementById(`cd_${id}`);
-      if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
-      if (activeNumbers[id].timeLeft <= 0) {
-        clearInterval(countdown);
-        cancelNumber(id, true);
-      }
-      updateStorage();
-    }, 1000);
-  }
-
+  const countdown = setInterval(() => {
+    if (!activeNumbers[id]) {
+      clearInterval(countdown);
+      return;
+    }
+    if (activeNumbers[id].timeLeft <= 0) {
+      clearInterval(countdown);
+      cancelNumber(id);  // skipHistory parameter hata diya
+      return;
+    }
+    const el = document.getElementById(`cd_${id}`);
+    if (el) el.textContent = `${activeNumbers[id].timeLeft}s`;
+    activeNumbers[id].timeLeft -= 1;
+    updateStorage();
+  }, 1000);
+}
   function createNumberEntry(i, id, num) {
     const stripped = num.replace(/^91/, "");
     activeNumbers[id] = {
@@ -386,7 +411,10 @@ async function cancelNumber(id, skipHistory = false) {
     alert("No OTP history yet.");
     return;
   }
-  alert(history.join("\n\n"));
+  const formatted = history.map(entry =>
+    `${entry.service} | ${entry.time} | ${entry.number} | OTP: ${entry.otp}`
+  ).join("\n\n");
+  alert(formatted);
 }
 
   window.onload = () => {
@@ -398,6 +426,14 @@ async function cancelNumber(id, skipHistory = false) {
   const redirectToHistory = () => {
   window.location.href = "history.html";
 };
+  function clearHistory() {
+  const confirmClear = confirm("Are you sure you want to clear history?");
+  if (confirmClear) {
+    localStorage.removeItem("otpHistory");
+    alert("History cleared.");
+    loadHistory(); // agar history reload karwana hai
+  }
+}
 </script>
   <footer style="margin-top: 40px; text-align: center; font-size: 14px; color: #555;">
     <hr style="margin: 20px auto; width: 80%;">
