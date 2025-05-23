@@ -427,7 +427,7 @@ async function cancelNumber(id, skipHistory = false) {
   window.location.href = "history.html";
 };
   function clearHistory() {
-  const confirmClear = confirm("Are you sure you want to clear history?");
+  const confirmClear = confirm("Are you sure you want to clear Storage?");
   if (confirmClear) {
     localStorage.removeItem("otpHistory");
     alert("History cleared.");
