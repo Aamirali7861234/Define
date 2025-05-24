@@ -432,16 +432,18 @@ async function cancelNumber(id, skipHistory = false) {
   const redirectToHistory = () => {
   window.location.href = "history.html";
 };
-  async function clearHistory() {
+async function clearHistory() {
   const confirmClear = confirm("Are you sure you want to clear Storage?");
   if (confirmClear) {
     const activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
     for (const id in activeNumbers) {
       await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`);
     }
-    localStorage.removeItem("otpHistory");
-    localStorage.removeItem("activeNumbers");
-    alert("History and active numbers cleared.");
+
+    // Clear all storage
+    localStorage.clear();
+
+    alert("All local storage data cleared.");
     location.reload();
   }
 }
