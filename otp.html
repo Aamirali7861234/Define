@@ -436,14 +436,19 @@ async function clearHistory() {
   const confirmClear = confirm("Are you sure you want to clear Storage?");
   if (confirmClear) {
     const activeNumbers = JSON.parse(localStorage.getItem("activeNumbers") || "{}");
+    console.log("Active numbers before clearing:", activeNumbers);
+
     for (const id in activeNumbers) {
-      await fetchProxy(`https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`);
+      const url = `https://readyacc.store/api/api.php?access=${access}&type=setNumSt&id=${id}&status=8`;
+      console.log("Canceling ID:", id, "URL:", url);
+      const res = await fetch(url);
+      const json = await res.json();
+      console.log("Cancel response:", json);
     }
 
-    // Clear all storage
-    localStorage.clear();
-
-    alert("All local storage data cleared.");
+    localStorage.removeItem("otpHistory");
+    localStorage.removeItem("activeNumbers");
+    alert("History and active numbers cleared.");
     location.reload();
   }
 }
