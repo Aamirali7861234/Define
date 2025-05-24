@@ -432,14 +432,14 @@ async function cancelNumber(id, skipHistory = false) {
   const redirectToHistory = () => {
   window.location.href = "history.html";
 };
-function clearHistory() {  
-  const confirmClear = confirm("Are you sure you want to clear Storage?");  
-  if (confirmClear) {  
-    localStorage.removeItem("otpHistory");  
-    alert("History cleared.");  
-    location.reload(); // directly after alert  
-  }  
-}  
+function clearHistory() {
+  const confirmClear = confirm("Are you sure you want to clear all local storage data?");
+  if (confirmClear) {
+    localStorage.clear(); // clears all keys from localStorage
+    alert("All local storage data cleared.");
+    location.reload();
+  }
+}
 </script>
   <footer style="margin-top: 40px; text-align: center; font-size: 14px; color: #555;">
     <hr style="margin: 20px auto; width: 80%;">
