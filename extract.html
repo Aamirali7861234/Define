@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Number & OTP Extractor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #ece9e6, #ffffff);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header, footer {
+      background: #007bff;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    main {
+      padding: 20px;
+      flex: 1;
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.3s ease, transform 0.2s;
+      flex: 1 1 auto;
+      max-width: 200px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: #0056b3;
+      transform: scale(1.05);
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      resize: vertical;
+    }
+    .output {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      margin-top: 20px;
+      position: relative;
+    }
+    .count {
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 10px;
+    }
+    pre {
+      background: #f1f2f6;
+      padding: 10px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 200px;
+      font-weight: bold;
+      background-color: #28a745;
+    }
+    .copy-btn:hover {
+      background-color: #218838;
+    }
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+      button, .copy-btn {
+        width: 100%;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body><header>
+  <h1>OTP Extractor Tool</h1>
+</header><main>  <textarea id="inputData" placeholder="Paste your data here..."></textarea>  <div class="controls">
+    <button onclick="extractData()">Extract</button>
+  </div>  <div class="output" id="outputArea"></div>
+</main><footer>
+  &copy; 2025 OTP Extractor. All rights reserved.
+</footer><audio id="copySound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+
+<script>
+  function extractData() {
+    const input = document.getElementById("inputData").value;
+    const regex = /(\d{10})\s*\|\s*OTP:\s*(\d{6})/g;
+    let match;
+    let outputList = [];
+
+    while ((match = regex.exec(input)) !== null) {
+      outputList.push(`${match[1]} ${match[2]}`);
+    }
+
+    const outputDiv = document.getElementById("outputArea");
+    if (outputList.length > 0) {
+      outputDiv.innerHTML = `
+        <button class="copy-btn" onclick="copyOutput()"><i class="fas fa-copy"></i> Copy</button>
+        <div class="count">Total: ${outputList.length}</div>
+        <pre id="outputText">${outputList.join("\n")}</pre>`;
+} else {
+  outputDiv.innerHTML = `<div class="count">No matches found.</div>`;
+}
+
+}
+
+function copyOutput() { const outputText = document.getElementById("outputText"); const copySound = document.getElementById("copySound"); if (!outputText) return;
+
+const range = document.createRange();
+range.selectNodeContents(outputText);
+const selection = window.getSelection();
+selection.removeAllRanges();
+selection.addRange(range);
+
+try {
+  document.execCommand('copy');
+  copySound.play();
+  alert('Copied to clipboard!');
+} catch (err) {
+  alert('Failed to copy');
+}
+
+selection.removeAllRanges();
+
+}
+
+</script></body>
+</html>
+
