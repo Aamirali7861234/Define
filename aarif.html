@@ -434,8 +434,12 @@ async function cancelNumber(id, skipHistory = false) {
   const confirmClear = confirm("Are you sure you want to clear Storage?");
   if (confirmClear) {
     localStorage.removeItem("otpHistory");
+    localStorage.removeItem("activeNumbers"); // if applicable
+    // Also clear number list from DOM
+    const numberList = document.querySelector(".your-number-list-class"); // replace with actual class/id
+    if (numberList) numberList.innerHTML = "";
     alert("History cleared.");
-    location.reload(); // directly after alert
+    location.reload();
   }
 }
 </script>
