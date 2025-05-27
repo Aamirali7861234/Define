@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Indian Name Generator (6+6)</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: blue;
+      color: #333;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: #e74c3c;
+      color: white;
+      padding: 15px 20px;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .box {
+      background: #ffffff;
+      margin: 40px auto;
+      padding: 40px 30px;
+      border-radius: 12px;
+      max-width: 420px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      transition: box-shadow 0.3s ease;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .box:hover {
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+    h2 {
+      color: #e74c3c;
+      font-weight: 700;
+      margin-bottom: 30px;
+      font-size: 28px;
+      letter-spacing: 1.2px;
+    }
+    #name {
+      font-size: 28px;
+      margin: 25px 0;
+      font-weight: 600;
+      color: #2c3e50;
+      min-height: 40px;
+      user-select: text;
+      letter-spacing: 0.05em;
+    }
+    button {
+      background: #3498db;
+      border: none;
+      color: white;
+      padding: 12px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 10px;
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      background: #2980b9;
+      box-shadow: 0 6px 14px rgba(41, 128, 185, 0.6);
+    }
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 7px rgba(41, 128, 185, 0.5);
+    }
+    footer {
+      background: #e74c3c;
+      color: white;
+      text-align: center;
+      padding: 15px 20px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    }
+    footer .icon {
+      font-weight: 700;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Indian Name Generator
+  </header>
+
+  <div class="box">
+
+    <div id="name">Click to generate</div>
+    <div>
+      <button onclick="generateName()">Generate</button>
+      <button onclick="copyName()">Copy</button>
+    </div>
+  </div>
+
+  <footer>
+    <span class="icon">©</span> 2025 Indian Name Generator. All rights reserved.
+  </footer>
+
+  <script>
+    const syllables = [
+      "sa", "ra", "na", "ka", "ta", "va", "la", "ma", "pa", "sha", "dha", "ni", "ri", "de", "an", "vi", "su", "mo",
+      "shi", "ki", "lo", "ja", "man", "tan", "kun", "bal", "ram", "ash", "jay", "dar", "kam", "tej", "rag", "vin"
+    ];
+
+    function generateWord(length) {
+      let word = '';
+      while (word.length < length) {
+        const part = syllables[Math.floor(Math.random() * syllables.length)];
+        word += part;
+      }
+      return word.substring(0, length).replace(/^\w/, c => c.toUpperCase());
+    }
+
+    function generateName() {
+      const usedNames = JSON.parse(localStorage.getItem('usedNames_6x6')) || [];
+      let tries = 0;
+      let fullName = '';
+
+      while (tries < Infinity) {
+        const first = generateWord(6);
+        const last = generateWord(6);
+        fullName = `${first} ${last}`;
+
+        if (!usedNames.includes(fullName)) {
+          usedNames.push(fullName);
+          localStorage.setItem('usedNames_6x6', JSON.stringify(usedNames));
+          document.getElementById("name").textContent = fullName;
+          return;
+        }
+        tries++;
+      }
+
+      document.getElementById("name").textContent = "All unique names used!";
+    }
+
+    function copyName() {
+      const name = document.getElementById("name").textContent;
+      if (name && name !== "Click to generate" && name !== "All unique names used!") {
+        navigator.clipboard.writeText(name);
+        
+      }
+    }
+  </script>
+</body>
+</html>
