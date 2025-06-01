@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Passport Photo Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+      margin: 0;
+      padding: 0;
+padding-bottom: 70px;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 960px;
+      margin: auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    #image, #outputCanvas {
+      max-width: 100%;
+      display: none;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      margin: 20px auto;
+    }
+
+    .controls, .sliders {
+      margin-top: 30px;
+    }
+
+    button, select, input[type="file"], input[type="color"], input[type="range"] {
+      padding: 12px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+
+    select:hover, input[type="file"]:hover {
+      border-color: #007bff;
+    }
+
+    .slider-container {
+      margin: 20px auto;
+      max-width: 400px;
+      text-align: left;
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    #loading {
+      display: none;
+      color: #28a745;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    .color-picker {
+      display: none;
+    }
+
+    #colorPreview {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #444;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #343a40; /* dark background */
+  color: #fff;
+  text-align: center;
+  padding: 15px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+    @media screen and (max-width: 600px) {
+      h1 { font-size: 22px; }
+      button, select, input[type="file"], input[type="color"] {
+        font-size: 14px;
+        padding: 10px;
+      }
+      .slider-container {
+        padding: 10px;
+      }
+      #colorPreview { width: 20px; height: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header> Passport Photo Editor</header>
+
+<div class="container">
+  <h1>Edit & Download Passport Size Photo</h1>
+
+  <input type="file" id="fileInput" accept="image/*"><br>
+
+  <div>
+   
+
+  <div><img id="image" /></div>
+
+ <div>
+  <select id="bgColor" style="display: none;">
+    <option value="white2" selected>🎨 Choose Background</option>
+    <option value="white">White Background</option>
+    <option value="#87ceeb">Blue Background</option>
+    <option value="#ff0000">Red Background</option>
+    <option value="custom">Custom Color</option>
+  </select>
+
+  <input type="color" id="customColor" class="color-picker" value="#ffffff" style="display: none;" />
+  
+  <span id="colorPreview" style="background: white; display: none;"></span>
+</div>
+
+
+  <canvas id="outputCanvas" width="413" height="531"></canvas>
+
+  <div class="sliders" id="editPanel" style="display: none;">
+    <div class="slider-container">
+      <label>Brightness</label>
+      <input type="range" id="brightness" min="0.5" max="1.5" step="0.01" value="1">
+
+      <label>Contrast</label>
+      <input type="range" id="contrast" min="0.5" max="1.5" step="0.01" value="1">
+
+      <label>Saturation</label>
+      <input type="range" id="saturation" min="0" max="2" step="0.01" value="1">
+
+      <label>Smoothness</label>
+      <input type="range" id="blur" min="0" max="5" step="0.1" value="0">
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="removeBackground()" style="display:none;">✂ Remove Background</button>
+
+    <button onclick="downloadPhoto()" style="display:none;">⬇ Download Photo</button>
+    <button id="resetBtn" onclick="resetFilters()" style="display: none;">🔄 Reset All</button>
+  </div>
+
+  <div id="loading">⏳ Processing... Please wait</div>
+</div>
+
+<footer>
+  © 2025 Passport Photo Editor. Built with ❤ for convenience.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+<script>
+  const image = document.getElementById('image');
+  const fileInput = document.getElementById('fileInput');
+  const outputCanvas = document.getElementById('outputCanvas');
+  const ctx = outputCanvas.getContext('2d');
+  const loading = document.getElementById('loading');
+  const bgColorSelect = document.getElementById("bgColor");
+  const customColorInput = document.getElementById("customColor");
+  const colorPreview = document.getElementById("colorPreview");
+  let cropper;
+
+  const brightnessSlider = document.getElementById('brightness');
+  const contrastSlider = document.getElementById('contrast');
+  const saturationSlider = document.getElementById('saturation');
+  const blurSlider = document.getElementById('blur');
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+
+    reader.onload = () => {
+document.querySelector("button[onclick='removeBackground()']").style.display ="inline-block";
+
+      image.src = reader.result;
+      image.style.display = 'block';
+
+bgColorSelect.style.display =
+        customColorInput.style.display =
+        colorPreview.style.display = "inline-block";
+
+
+      if (cropper) cropper.destroy();
+
+      cropper = new Cropper(image, {
+        aspectRatio: 35 / 45,
+        viewMode: 1,
+        autoCropArea: 1
+      });
+    };
+    reader.readAsDataURL(file);
+
+  });
+
+  bgColorSelect.addEventListener("change", () => {
+    if (bgColorSelect.value === "custom") {
+      customColorInput.style.display = "inline-block";
+    } else {
+      customColorInput.style.display = "none";
+    }
+    updateColorPreview();
+  });
+
+  customColorInput.addEventListener("input", updateColorPreview);
+
+  function updateColorPreview() {
+  const selectedColor = getSelectedColor();
+  colorPreview.style.background = selectedColor;
+  redrawCanvasWithBackground(); // 🟢 add live canvas update
+}
+
+  function getSelectedColor() {
+    return bgColorSelect.value === "custom" ? customColorInput.value : bgColorSelect.value;
+  }
+
+  function removeBackground() {
+    if (!cropper) return alert("Upload and crop an image first.");
+    loading.style.display = 'block';
+
+    cropper.getCroppedCanvas({
+      width: 413,
+      height: 531
+    }).toBlob(blob => {
+      const formData = new FormData();
+      formData.append("image_file", blob);
+      formData.append("size", "auto");
+
+
+
+      fetch("https://api.remove.bg/v1.0/removebg", {
+        method: "POST",
+        headers: {
+          "X-Api-Key": "ZpdKmK1eHPz9HtLN7kJjEsfz"
+        },
+        body: formData
+      })
+
+      .then(res => res.blob())
+      .then(blob => {
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+          ctx.fillStyle = getSelectedColor();
+          ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+          ctx.drawImage(img, 0, 0, 413, 531);
+          outputCanvas.style.display = 'block';
+          document.getElementById("editPanel").style.display = "block";
+          updateCanvasFilters();
+          loading.style.display = 'none';      
+document.getElementById("resetBtn").style.display = "inline-block";
+document.getElementById("colorPreview").style.display = "inline-block";
+
+document.querySelector("button[onclick='downloadPhoto()']").style.display = "inline-block";
+        document.querySelector("button[onclick='removeBackground()']").style.display = "none";
+
+        };
+        img.src = URL.createObjectURL(blob);
+        window.removedBgImage = img;
+      })
+      .catch(() => {
+        alert("❌Your free tryle is complet plz contect Aamir Ali");
+        loading.style.display = 'none';
+      });
+    }, 'image/jpeg');
+  }
+
+
+
+function downloadPhoto() {
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+
+  tempCanvas.width = outputCanvas.width;
+  tempCanvas.height = outputCanvas.height;
+
+  // Apply filter values
+  const brightness = brightnessSlider.value;
+  const contrast = contrastSlider.value;
+  const saturation = saturationSlider.value;
+  const blur = blurSlider.value;
+
+  tempCtx.filter = `
+    brightness(${brightness})
+    contrast(${contrast})
+    saturate(${saturation})
+    blur(${blur}px)
+  `;
+
+  // Draw the original canvas (with transparent bg or pre-filled bg) onto new canvas with filters
+  tempCtx.drawImage(outputCanvas, 0, 0);
+
+  // Download
+  const link = document.createElement('a');
+  link.download = 'passport_photo.jpg';
+  link.href = tempCanvas.toDataURL('image/jpeg');
+  link.click();
+}
+
+function updateCanvasFilters() {
+  if (outputCanvas.style.display === 'block') {
+    outputCanvas.style.filter = `
+      brightness(${brightnessSlider.value})
+      contrast(${contrastSlider.value})
+      saturate(${saturationSlider.value})
+      blur(${blurSlider.value}px)
+    `;
+  }
+}
+
+// Realtime preview for sliders
+[brightnessSlider, contrastSlider, saturationSlider, blurSlider].forEach(slider => {
+  slider.addEventListener("input", updateCanvasFilters);
+});
+
+
+  function resetFilters() {
+    brightnessSlider.value = 1;
+    contrastSlider.value = 1;
+    saturationSlider.value = 1;
+    blurSlider.value = 0;
+    updateCanvasFilters();
+  }
+  function redrawCanvasWithBackground() {
+  if (!window.removedBgImage) return;
+
+  ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+  ctx.fillStyle = getSelectedColor();
+  ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+  ctx.drawImage(window.removedBgImage, 0, 0, 413, 531);
+  updateCanvasFilters();
+}
+</script>
+</body>
+</html>
