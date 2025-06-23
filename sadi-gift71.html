@@ -22,6 +22,15 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+    button {
+      padding: 8px 20px;
+      margin-bottom: 20px;
+      background-color: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
     table {
       border-collapse: collapse;
       width: 100%;
@@ -41,11 +50,19 @@
     tr:nth-child(even) {
       background-color: #f9f9f9;
     }
+    .total-row {
+      background-color: #e6ffe6;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <h2>🎁 शादी के गिफ्ट्स की लिस्ट</h2>
+
   <input type="text" id="searchInput" placeholder="🔍 Search by Name, Address, Amount or Gift">
+  <br>
+  <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+
   <div id="giftList">Loading data...</div>
 
   <script>
@@ -58,20 +75,30 @@
         renderTable(tableData);
       })
       .catch(error => {
-        document.getElementById("giftList").innerHTML = "Error loading data.";
+        document.getElementById("giftList").innerHTML = "❌ Error loading data.";
         console.error(error);
       });
 
     function renderTable(data) {
-      let html = "<table><tr><th>Name</th><th>Address</th><th>Amount</th><th>Gift</th></tr>";
-      data.forEach(row => {
+      let total = 0;
+      let html = "<table><tr><th>S.No.</th><th>Name</th><th>Address</th><th>Amount</th><th>Gift</th></tr>";
+      data.forEach((row, index) => {
+        const amount = parseFloat(row[2]) || 0;
+        total += amount;
         html += `<tr>
+                  <td>${index + 1}</td>
                   <td>${row[0]}</td>
                   <td>${row[1]}</td>
-                  <td>₹${row[2]}</td>
+                  <td>₹${amount}</td>
                   <td>${row[3]}</td>
                 </tr>`;
       });
+
+      html += `<tr class="total-row">
+                 <td colspan="3">Total</td>
+                 <td>₹${total}</td>
+                 <td></td>
+               </tr>`;
       html += "</table>";
       document.getElementById("giftList").innerHTML = html;
     }
