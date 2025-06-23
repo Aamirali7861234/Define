@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎁 Shaadi Gift List</title>
+  <title>🎁 शादी के गिफ्ट्स की लिस्ट</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -12,15 +12,23 @@
     }
     h2 {
       color: #2e8b57;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      max-width: 500px;
       margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
-      box-shadow: 0 0 10px #ccc;
       background-color: #fff;
+      box-shadow: 0 0 10px #ccc;
     }
     th, td {
       padding: 12px;
@@ -37,27 +45,44 @@
 </head>
 <body>
   <h2>🎁 शादी के गिफ्ट्स की लिस्ट</h2>
+  <input type="text" id="searchInput" placeholder="🔍 Search by Name, Address, Amount or Gift">
   <div id="giftList">Loading data...</div>
 
   <script>
+    let tableData = [];
+
     fetch('https://script.google.com/macros/s/AKfycby9jCBA4BhZ3XX3mmtVrIrl9z4LA0cYBIK5P9LiCvqm_rzq5oHoPMtfyiXS1o7029b3/exec')
       .then(response => response.json())
       .then(data => {
-        let html = "<table><tr><th>Name</th><th>Gift</th><th>Date</th></tr>";
-        for (let i = 1; i < data.length; i++) {
-          html += `<tr>
-                    <td>${data[i][0]}</td>
-                    <td>${data[i][1]}</td>
-                    <td>${data[i][2]}</td>
-                  </tr>`;
-        }
-        html += "</table>";
-        document.getElementById("giftList").innerHTML = html;
+        tableData = data.slice(1); // Skip header
+        renderTable(tableData);
       })
       .catch(error => {
         document.getElementById("giftList").innerHTML = "Error loading data.";
         console.error(error);
       });
+
+    function renderTable(data) {
+      let html = "<table><tr><th>Name</th><th>Address</th><th>Amount</th><th>Gift</th></tr>";
+      data.forEach(row => {
+        html += `<tr>
+                  <td>${row[0]}</td>
+                  <td>${row[1]}</td>
+                  <td>₹${row[2]}</td>
+                  <td>${row[3]}</td>
+                </tr>`;
+      });
+      html += "</table>";
+      document.getElementById("giftList").innerHTML = html;
+    }
+
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const q = this.value.toLowerCase();
+      const filtered = tableData.filter(row =>
+        row.join(" ").toLowerCase().includes(q)
+      );
+      renderTable(filtered);
+    });
   </script>
 </body>
 </html>
