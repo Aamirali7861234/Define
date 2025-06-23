@@ -10,20 +10,23 @@
       padding: 20px;
       text-align: center;
     }
+
     h2 {
       color: #2e8b57;
       margin-bottom: 10px;
     }
+
     input[type="text"] {
       padding: 10px;
-      width: 80%;
+      width: 45%;
       max-width: 500px;
       margin-bottom: 20px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+
     button {
-      padding: 8px 20px;
+      padding: 10px 20px;
       margin-bottom: 20px;
       background-color: #2e8b57;
       color: white;
@@ -31,6 +34,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     table {
       border-collapse: collapse;
       width: 100%;
@@ -38,22 +42,49 @@
       background-color: #fff;
       box-shadow: 0 0 10px #ccc;
     }
+
     th, td {
       padding: 12px;
       border: 1px solid #ccc;
     }
+
     th {
       background-color: #2e8b57;
       color: white;
     }
+
     tr:nth-child(even) {
       background-color: #f9f9f9;
     }
+
     .total-row {
       background-color: #e6ffe6;
       font-weight: bold;
     }
-    /* PRINT CSS */
+
+    /* Loader style */
+    .progress-container {
+      width: 80%;
+      height: 20px;
+      background-color: #e0e0e0;
+      border-radius: 10px;
+      margin: 30px auto;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background-color: #2e8b57;
+      transition: width 0.2s ease;
+    }
+
+    #progressText {
+      font-weight: bold;
+      color: #2e8b57;
+      margin-bottom: 20px;
+    }
+
     @media print {
       body * {
         visibility: hidden;
@@ -78,15 +109,17 @@
         font-weight: bold;
         color: black;
       }
-
       th {
-    color: black !important;
-    font-weight: bold !important;
-    background-color: transparent !important;
-  }
-  td {
-    color: black !important;
-  }
+        color: black !important;
+        font-weight: bold !important;
+        background-color: transparent !important;
+      }
+      td {
+        color: black !important;
+      }
+      #progressText, .progress-container {
+        display: none !important;
+      }
     }
   </style>
 </head>
@@ -95,22 +128,53 @@
   <h2 id="printHeading">🎁 शादी के गिफ्ट्स की लिस्ट</h2>
 
   <input type="text" id="searchInput" placeholder="🔍 Search by Name, Address, Amount or Gift">
-  <br>
+  
   <button onclick="window.print()">🖨️ Print / Save as PDF</button>
 
-  <div id="giftList">Loading data...</div>
+  <!-- Loader Start -->
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <p id="progressText">Loading... 0%</p>
+  <!-- Loader End -->
+
+  <div id="giftList" style="display: none;">Loading data...</div>
 
   <script>
     let tableData = [];
+    let progress = 0;
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
 
+    // Simulated loading animation
+    let fakeProgress = setInterval(() => {
+      if (progress < 90) {
+        progress += Math.floor(Math.random() * 5) + 1;
+        progressBar.style.width = progress + "%";
+        progressText.innerText = `Loading... ${progress}%`;
+      }
+    }, 200);
+
+    // Fetch actual data
     fetch('https://script.google.com/macros/s/AKfycby9jCBA4BhZ3XX3mmtVrIrl9z4LA0cYBIK5P9LiCvqm_rzq5oHoPMtfyiXS1o7029b3/exec')
       .then(response => response.json())
       .then(data => {
-        tableData = data.slice(1); // Skip header
-        renderTable(tableData);
+        clearInterval(fakeProgress);
+        progress = 100;
+        progressBar.style.width = "100%";
+        progressText.innerText = `Loading complete ✅`;
+
+        setTimeout(() => {
+          document.getElementById("progressContainer").style.display = "none";
+          document.getElementById("progressText").style.display = "none";
+          document.getElementById("giftList").style.display = "block";
+
+          tableData = data.slice(1); // Skip header
+          renderTable(tableData);
+        }, 500);
       })
       .catch(error => {
-        document.getElementById("giftList").innerHTML = "❌ Error loading data.";
+        document.getElementById("progressText").innerText = "❌ Error loading data";
         console.error(error);
       });
 
