@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>🎁 Shaadi Gift List</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0fff0;
+      padding: 20px;
+      text-align: center;
+    }
+    h2 {
+      color: #2e8b57;
+      margin-bottom: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 0 10px #ccc;
+      background-color: #fff;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #2e8b57;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎁 शादी के गिफ्ट्स की लिस्ट</h2>
+  <div id="giftList">Loading data...</div>
+
+  <script>
+    fetch('https://script.google.com/macros/s/AKfycby9jCBA4BhZ3XX3mmtVrIrl9z4LA0cYBIK5P9LiCvqm_rzq5oHoPMtfyiXS1o7029b3/exec')
+      .then(response => response.json())
+      .then(data => {
+        let html = "<table><tr><th>Name</th><th>Gift</th><th>Date</th></tr>";
+        for (let i = 1; i < data.length; i++) {
+          html += `<tr>
+                    <td>${data[i][0]}</td>
+                    <td>${data[i][1]}</td>
+                    <td>${data[i][2]}</td>
+                  </tr>`;
+        }
+        html += "</table>";
+        document.getElementById("giftList").innerHTML = html;
+      })
+      .catch(error => {
+        document.getElementById("giftList").innerHTML = "Error loading data.";
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
