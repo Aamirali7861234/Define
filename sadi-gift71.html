@@ -180,7 +180,7 @@
 
     function renderTable(data) {
       let total = 0;
-      let html = "<table><tr><th>S.No.</th><th>Name</th><th>Address</th><th>Amount</th><th>Gift</th></tr>";
+      let html = "<table><tr><th>S.NO.</th><th>NAME</th><th>ADDRESS</th><th>AMOUT</th><th>GIFT</th></tr>";
       data.forEach((row, index) => {
         const amount = parseFloat(row[2]) || 0;
         total += amount;
