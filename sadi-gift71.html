@@ -13,25 +13,28 @@
 
     h2 {
       color: #2e8b57;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
-    input[type="text"] {
-      padding: 10px;
-      width: 45%;
-      max-width: 500px;
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
       margin-bottom: 20px;
-      border: 1px solid #ccc;
+    }
+
+    select, input[type="text"], button {
+      padding: 10px;
       border-radius: 6px;
+      font-size: 14px;
+      border: 1px solid #ccc;
     }
 
     button {
-      padding: 10px 20px;
-      margin-bottom: 20px;
       background-color: #2e8b57;
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
     }
 
@@ -62,7 +65,6 @@
       font-weight: bold;
     }
 
-    /* Loader style */
     .progress-container {
       width: 80%;
       height: 20px;
@@ -89,8 +91,7 @@
       body * {
         visibility: hidden;
       }
-      #giftList, #giftList *,
-      #printHeading {
+      #giftList, #giftList *, #printHeading {
         visibility: visible;
       }
       #giftList {
@@ -111,7 +112,6 @@
       }
       th {
         color: black !important;
-        font-weight: bold !important;
         background-color: transparent !important;
       }
       td {
@@ -125,29 +125,43 @@
 </head>
 <body>
 
-  <h2 id="printHeading">Arshad Ali Shadi Gift Record</h2>
+  <h2 id="printHeading">Shadi Gift Records</h2>
 
-  <input type="text" id="searchInput" placeholder="🔍 Search by Name, Address, Amount or Gift">
-  
-  <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+  <div class="toolbar">
+    <select id="eventFilter" onchange="applySearchAndFilter()">
+      <option value="All">🎉 सभी इवेंट</option>
+      <option value="Invitation">📜 Invitation</option>
+      <option value="Nahachuw">🛁 Nahachuw</option>
+      <option value="Bahubhoj">🍽️ Bahubhoj</option>
+    </select>
 
-  <!-- Loader Start -->
+    <select id="weddingFilter" onchange="applySearchAndFilter()">
+      <option value="All">💍 All Weddings</option>
+      <option value="Arshad Ali">Arshad Ali</option>
+      <option value="Aarif Ali">Aarif Ali</option>
+      <option value="Aamir Ali">Aamir Ali</option>
+      <option value="Shabnam Khatun">Shabnam Khatun</option>
+      <option value="Nasir Ali">Nasir Ali</option>
+    </select>
+
+    <input type="text" id="searchInput" placeholder="🔍 Search by Name, Address, Gift...">
+    <button onclick="window.print()">🖨️ Print / Save PDF</button>
+  </div>
+
   <div class="progress-container" id="progressContainer">
     <div class="progress-bar" id="progressBar"></div>
   </div>
   <p id="progressText">Loading... 0%</p>
-  <!-- Loader End -->
 
   <div id="giftList" style="display: none;">Loading data...</div>
 
   <script>
     let tableData = [];
-    let progress = 0;
     const progressBar = document.getElementById("progressBar");
     const progressText = document.getElementById("progressText");
 
-    // Simulated loading animation
     let fakeProgress = setInterval(() => {
+      let progress = parseInt(progressBar.style.width) || 0;
       if (progress < 90) {
         progress += Math.floor(Math.random() * 5) + 1;
         progressBar.style.width = progress + "%";
@@ -155,59 +169,81 @@
       }
     }, 200);
 
-    // Fetch actual data
     fetch('https://script.google.com/macros/s/AKfycby9jCBA4BhZ3XX3mmtVrIrl9z4LA0cYBIK5P9LiCvqm_rzq5oHoPMtfyiXS1o7029b3/exec')
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
         clearInterval(fakeProgress);
-        progress = 100;
         progressBar.style.width = "100%";
-        progressText.innerText = `Loading complete ✅`;
+        progressText.innerText = "Loading complete ✅";
 
         setTimeout(() => {
           document.getElementById("progressContainer").style.display = "none";
           document.getElementById("progressText").style.display = "none";
           document.getElementById("giftList").style.display = "block";
 
-          tableData = data.slice(1); // Skip header
+          tableData = data.slice(1); // skip header
           renderTable(tableData);
         }, 500);
       })
-      .catch(error => {
+      .catch(err => {
         document.getElementById("progressText").innerText = "❌ Error loading data";
-        console.error(error);
+        console.error(err);
       });
 
     function renderTable(data) {
       let total = 0;
-      let html = "<table><tr><th>S.NO</th><th>NAME</th><th>ADDRESS</th><th>AMOUNT</th><th>GIFTS</th></tr>";
-      data.forEach((row, index) => {
-        const amount = parseFloat(row[2]) || 0;
+      let html = "<table><tr><th>S.NO</th><th>NAME</th><th>ADDRESS</th><th>AMOUNT</th><th>GIFTS</th><th>EVENT</th><th>SHADI OF</th></tr>";
+      let count = 0;
+
+      data.forEach((row) => {
+        const [name, address, amtStr, gift, event, shadiOf] = row;
+        const amount = parseFloat(amtStr) || 0;
+
+        const eventFilter = document.getElementById("eventFilter").value;
+        const weddingFilter = document.getElementById("weddingFilter").value;
+
+        if (eventFilter !== 'All' && event !== eventFilter) return;
+        if (weddingFilter !== 'All' && shadiOf !== weddingFilter) return;
+
         total += amount;
+        count++;
         html += `<tr>
-                  <td>${index + 1}</td>
-                  <td>${row[0]}</td>
-                  <td>${row[1]}</td>
-                  <td>₹${amount}</td>
-                  <td>${row[3]}</td>
-                </tr>`;
+          <td>${count}</td>
+          <td>${name}</td>
+          <td>${address}</td>
+          <td>₹${amount}</td>
+          <td>${gift}</td>
+          <td>${event}</td>
+          <td>${shadiOf}</td>
+        </tr>`;
       });
+
       html += `<tr class="total-row">
-                 <td colspan="3">Total</td>
-                 <td>₹${total}</td>
-                 <td></td>
-               </tr>`;
-      html += "</table>";
+        <td colspan="3">Total</td>
+        <td>₹${total}</td>
+        <td colspan="3"></td>
+      </tr></table>`;
+
       document.getElementById("giftList").innerHTML = html;
     }
 
-    document.getElementById("searchInput").addEventListener("input", function () {
-      const q = this.value.toLowerCase();
-      const filtered = tableData.filter(row =>
-        row.join(" ").toLowerCase().includes(q)
-      );
+    document.getElementById("searchInput").addEventListener("input", applySearchAndFilter);
+
+    function applySearchAndFilter() {
+      const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+      const eventFilter = document.getElementById("eventFilter").value;
+      const weddingFilter = document.getElementById("weddingFilter").value;
+
+      const filtered = tableData.filter(row => {
+        const matchesEvent = eventFilter === 'All' || row[4] === eventFilter;
+        const matchesWedding = weddingFilter === 'All' || row[5] === weddingFilter;
+        const matchesSearch = row.join(" ").toLowerCase().includes(searchQuery);
+        return matchesEvent && matchesWedding && matchesSearch;
+      });
+
       renderTable(filtered);
-    });
+    }
   </script>
+
 </body>
 </html>
