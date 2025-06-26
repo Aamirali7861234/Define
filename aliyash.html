@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Advanced Salary Slip Editable with Auto Calculation</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+    .slip-container {
+      background: white;
+      width: 800px;
+      margin: auto;
+      padding: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    /* Header: logo + company name center aligned */
+    .header {
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      text-align: center;
+    }
+    .header img {
+      height: 60px;
+      margin-bottom: 0;
+    }
+    .header h2 input {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      border: none;
+      background: transparent;
+      width: auto;
+    }
+.company-details textarea {
+  border: none;
+  width: 100%;
+  font-size: 14px;
+  color: #555;
+  font-weight: normal;
+  text-align: center;
+  background: transparent;
+  margin-top: 5px;
+  height: auto;        /* Height अपने आप एडजस्ट हो */
+  min-height: 50px;    /* कम से कम 50px ऊँचाई */
+  
+  white-space: pre-wrap; /* टेक्स्ट नए लाइन पर भी दिखे */
+}
+
+
+    h2, h3 {
+      margin: 5px 0;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    input {
+      border: none;
+      width: 100%;
+      font-weight: bold;
+      font-size: 14px;
+      background: transparent;
+    }
+    textarea {
+      border: none;
+      width: 100%;
+      font-weight: normal;
+      font-size: 14px;
+      background: transparent;
+      resize: none;
+    }
+    .signature {
+      margin-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .signature div {
+      width: 45%;
+      text-align: center;
+    }
+    .signature input {
+      font-weight: normal;
+      font-size: 14px;
+      text-align: center;
+      border-bottom: 1px solid #000;
+      background: transparent;
+      width: 80%;
+      padding: 2px 5px;
+      margin-top: 5px;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #777;
+      text-align: center;
+      clear: both;
+    }
+    .footer textarea {
+      border: none;
+      background: transparent;
+      resize: none;
+      width: 100%;
+      color: #777;
+      font-size: 12px;
+      text-align: center;
+    }
+    .print-btn {
+      text-align: center;
+      margin-top: 20px;
+    }
+    @media print {
+      .print-btn {
+        display: none;
+      }
+      input, textarea {
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="slip-container" id="salarySlip">
+  <div class="header">
+      <h2><input type="text" value="ABC Technologies Pvt. Ltd." /></h2>
+    <div class="company-details">
+<p contenteditable="true">
+  101, Tech Park, MG Road, Bangalore - 560001
+  Phone: +91-9999999999 | Email: hr@abctech.in
+</p>
+
+
+    </div>
+  </div>
+
+  <h3 style="text-align:center; margin-top: 20px;">Salary Slip for <input id="monthInput" type="text" value="June 2025" /></h3>
+
+  <table>
+    <tr>
+      <td><strong>Employee Name:</strong> <input type="text" value="Rahul Sharma" /></td>
+      <td><strong>Employee ID:</strong> <input type="text" value="EMP1023" /></td>
+    </tr>
+    <tr>
+      <td><strong>Designation:</strong> <input type="text" value="Software Engineer" /></td>
+      <td><strong>Department:</strong> <input type="text" value="IT" /></td>
+    </tr>
+    <tr>
+      <td><strong>Date of Joining:</strong> <input type="text" value="01-Jan-2023" /></td>
+      <td><strong>Date of Payment:</strong> <input type="text" value="25-06-2025" /></td>
+    </tr>
+  </table>
+
+  <h3>Salary Details</h3>
+  <table>
+    <tr>
+      <th>Earnings</th><th>Amount (₹)</th><th>Deductions</th><th>Amount (₹)</th>
+    </tr>
+    <tr>
+      <td>Basic Pay</td><td><input type="text" class="earning" value="25000" /></td>
+      <td>PF</td><td><input type="text" class="deduction" value="1800" /></td>
+    </tr>
+    <tr>
+      <td>HRA</td><td><input type="text" class="earning" value="10000" /></td>
+      <td>Professional Tax</td><td><input type="text" class="deduction" value="200" /></td>
+    </tr>
+    <tr>
+      <td>Special Allowance</td><td><input type="text" class="earning" value="5000" /></td>
+      <td>Other Deductions</td><td><input type="text" class="deduction" value="0" /></td>
+    </tr>
+    <tr>
+      <td><strong>Total Earnings</strong></td><td><input type="text" id="totalEarnings" readonly /></td>
+      <td><strong>Total Deductions</strong></td><td><input type="text" id="totalDeductions" readonly /></td>
+    </tr>
+    <tr>
+      <th colspan="2">Net Salary Payable</th>
+      <th colspan="2"><input type="text" id="netSalary" readonly /></th>
+    </tr>
+  </table>
+
+  <div class="signature">
+    <div>
+ 
+      <input type="text" value="Authorized Signatory" />
+    </div>
+    <div>
+      
+      <input type="text" value="Employee Signature" />
+    </div>
+  </div>
+
+  <div class="footer">
+    <textarea rows="2" readonly>This is a computer-generated slip and does not require a physical signature.
+ Salary is subject to applicable taxes and deductions.</textarea>
+  </div>
+</div>
+
+<div class="print-btn">
+  <button onclick="window.print()">🖨️ Print / Download PDF</button>
+</div>
+
+<script>
+  function parseCurrency(input) {
+    let val = input.replace(/,/g, '').trim();
+    return isNaN(val) || val === '' ? 0 : parseFloat(val);
+  }
+
+  function formatCurrency(num) {
+    return num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  }
+
+  function calculateTotals() {
+    const earningInputs = document.querySelectorAll('.earning');
+    const deductionInputs = document.querySelectorAll('.deduction');
+    let totalEarnings = 0;
+    let totalDeductions = 0;
+
+    earningInputs.forEach(input => {
+      totalEarnings += parseCurrency(input.value);
+      input.value = formatCurrency(parseCurrency(input.value));
+    });
+
+    deductionInputs.forEach(input => {
+      totalDeductions += parseCurrency(input.value);
+      input.value = formatCurrency(parseCurrency(input.value));
+    });
+
+    document.getElementById('totalEarnings').value = formatCurrency(totalEarnings);
+    document.getElementById('totalDeductions').value = formatCurrency(totalDeductions);
+    document.getElementById('netSalary').value = formatCurrency(totalEarnings - totalDeductions);
+  }
+
+  document.querySelectorAll('.earning, .deduction').forEach(input => {
+    input.addEventListener('input', () => {
+      calculateTotals();
+    });
+  });
+
+
+  window.onload = calculateTotals;
+</script>
+
+</body>
+</html>
